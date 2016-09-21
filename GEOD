@@ -1,0 +1,162 @@
+==============================================================================
+
+WGS84 (EPSG:4326)
+
+PROJ4:
++proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
+
+WKT:
+GEOGCS["WGS 84",
+    DATUM["WGS_1984",
+        SPHEROID["WGS 84",6378137,298.257223563,
+            AUTHORITY["EPSG","7030"]],
+        AUTHORITY["EPSG","6326"]],
+    PRIMEM["Greenwich",0,
+        AUTHORITY["EPSG","8901"]],
+    UNIT["degree",0.01745329251994328,
+        AUTHORITY["EPSG","9122"]],
+    AUTHORITY["EPSG","4326"]]
+
+==============================================================================
+
+PZ-90 (EPSG:4923)
+
+PROJ4:
++proj=longlat +a=6378136 +b=6356751.361745712 +towgs84=0.0,0.0,1.5,-0.0,0.0,-0.076,0.0 +no_defs
+
+WKT:
+GEOGCS["PZ-90",
+    DATUM["Parametrop Zemp 1990",
+        SPHEROID["PZ-90",6378136.0,298.257839303,
+            AUTHORITY["EPSG","7054"]],
+        TOWGS84[0.0,0.0,1.5,-0.0,0.0,-0.076,0.0],
+        AUTHORITY["EPSG","6740"]],
+    PRIMEM["Greenwich",0.0,
+        AUTHORITY["EPSG","8901"]],
+    UNIT["degree",0.017453292519943295],
+    AXIS["Geodetic latitude",NORTH],
+    AXIS["Geodetic longitude",EAST],
+    AXIS["Ellipsoidal height",UP],
+    AUTHORITY["EPSG","4923"]]
+
+==============================================================================
+
+Web Mercator Projection (EPSG:3857)
+
+PROJ4:
++proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+
+WKT:
+PROJCS["WGS 84 / Pseudo-Mercator",
+    GEOGCS["Popular Visualisation CRS",
+        DATUM["Popular_Visualisation_Datum",
+            SPHEROID["Popular Visualisation Sphere",6378137,0,
+                AUTHORITY["EPSG","7059"]],
+            TOWGS84[0,0,0,0,0,0,0],
+            AUTHORITY["EPSG","6055"]],
+        PRIMEM["Greenwich",0,
+            AUTHORITY["EPSG","8901"]],
+        UNIT["degree",0.01745329251994328,
+            AUTHORITY["EPSG","9122"]],
+        AUTHORITY["EPSG","4055"]],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    PROJECTION["Mercator_1SP"],
+    PARAMETER["central_meridian",0],
+    PARAMETER["scale_factor",1],
+    PARAMETER["false_easting",0],
+    PARAMETER["false_northing",0],
+    AUTHORITY["EPSG","3785"],
+    AXIS["X",EAST],
+    AXIS["Y",NORTH]]
+
+==============================================================================
+
+WGS-84 To Web Mercator Convertion (EPSG:1024)
+
+lat, lon [rad] -> x, y [wm]
+    x = a * lon
+    y = a * ln(tan(pi / 4 + lat / 2))
+
+x, y [wm] -> lat, lon [rad]
+    lat = pi/2 - 2 * atan(exp(-y / a))
+    lon = x / a
+
+k [wm / m] = sec(lat) = cosh(y / a)
+
+==============================================================================
+
+Helmert-7 Parameter Transformation (EPSG:1032)
+
+towgs84=dx,dy,dz,Rx,Ry,Rz,M
+| Xt |   |  1   Rz -Ry |       | Xs |
+| Yt | = | -Rz  1   Rx | * M + | Ys |
+| Zt |   |  Ry -Rx  1  |       | Zs |
+
+==============================================================================
+
+Geodetic/Geocentric Convertion (EPSG:9602)
+
+X-axis -> Greenwich meridian (lat = 0, lon = 0)
+Z-axis -> North Pole (lat = 90deg)
+
+lat,lon,h -> X,Y,Z
+    N = a / sqrt(1 - (e * sin(lat))^2)
+    X = (N + h) * cos(lat) * cos(lon)
+    Y = (N + h) * cos(lat) * sin(lon)
+    Z = ((b / a)^2 * N + h) * sin(lat)
+
+X,Y,Z -> lat,lon,h !!!!this formula is incorrect
+    E = e^2 * (1 - e^2)
+    p = sqrt(X^2 + Y^2)
+    q = atan((Z * a) / (p * b))
+
+    lat = atan((Z + E * b * sin(q)^3) / (p - e^2 * a * cos(q)^3))
+    lon = atan2(Y, X)
+    h = p / cos(lat) - N
+
+==============================================================================
+
+Topocentric Convertion (EPSG:9836)
+
+U-axis -> East
+V-axis -> North
+W-axis -> Up
+
+Topocentric Rotation for origin(lat, lon)
+    |        -sin(lon)            cos(lon)         0     |
+R = | -sin(lat) * cos(lon)  -sin(lat)*sin(lon)  cos(lat) |
+    |  cos(lat) * cos(lon)   cos(lat)*sin(lon)  sin(lat) |
+
+Topocentric coordinates for point(X,Y,Z) with origin(X0,Y0,Z0)
+| U |       | X - X0 |
+| V | = R * | Y - Y0 |
+| W |       | Z - Z0 |
+
+| X |         | U |   | X0 |
+| Y | = R^T * | V | + | Y0 |
+| Z |         | W |   | Z0 |
+
+==============================================================================
+
+Web Mercator To 256x256 Tile Convertion
+
+N,M,z - tile N-th column, M-th row at z-th zoom
+    z = 0, 1, ...
+    N,M = 0, ..., 2^z - 1
+
+Zoom-level (0 - whole world, 1 - 4 tiles) -> Scale factor
+    K0 = 256 / (2 * pi * a) [px/wm]
+    Kz = K0 * 2^z
+
+    z = floor(log2(K / K0))
+
+Tile number (N,M) <-> Web Mercator (x,y [wm])
+    L = pi * a
+    K = Kz / K0
+
+    N = floor((1 + x / L) * K / 2)
+    M = floor((1 - y / L) * K / 2)
+
+    x =  L * (2 * N / K - 1)
+    y = -L * (2 * M / K - 1)
