@@ -6,7 +6,7 @@ function geod = ecef2geod(ecef)
     phi = atan2(ecef(3), p * (1 - Se^2));
 
     if p < 0.01
-        h = ecef(3) - Sb * sin(phi);
+        h = ecef(3) * sin(phi) - Sb;
     else
         h = 0;
         i = 0;
