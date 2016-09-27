@@ -106,8 +106,8 @@ lat,lon,h -> X,Y,Z
     Y = (N + h) * cos(lat) * sin(lon)
     Z = ((b / a)^2 * N + h) * sin(lat)
 
-X,Y,Z -> lat,lon,h !!!!this formula is incorrect
-    E = e^2 * (1 - e^2)
+X,Y,Z -> lat,lon,h
+    E = e^2 / (1 - e^2)
     p = sqrt(X^2 + Y^2)
     q = atan((Z * a) / (p * b))
 
