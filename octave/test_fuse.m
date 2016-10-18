@@ -34,7 +34,7 @@ function test_fuse()
 
     %% compute required data (ECEF for vessel, LF for target and vessel rotations)
     src = geod2ecef(src_geod);
-    quat = dcm2quat(rpy2dcm(src_rpy));
+    sdcm = rpy2dcm(src_rpy);
     xyz = [];
     for i = 1:size(tgt_ecef, 2)
         xyz = [ xyz, usbl_defuse(tgt_ecef(:, i), src_rpy(:, i), src_geod(:, i)) + 0.25 * (rand(3, 1) - 0.5) ];
@@ -47,47 +47,17 @@ function test_fuse()
     dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad); % initial values
     shift = [ 0; 0; 0 ];
 
-    disp(''); disp('=========== Run M ===========');
-    [ dcm1, shift1 ] = usbl_calib(shift_src(src, quat, shift), quat, dcm * xyz);
-    disp('Rotation:'); disp(dcm2rpy(dcm1)' / deg2rad);
-    disp('Shift:'); disp(shift1');
+    for i = 1:2
+        disp(''); disp([ '=========== Run C ===========' ]);
+        [ cdcm, cshift ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
+        disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
+        disp('Shift:'); disp(cshift');
 
-    yawdcm = rpy2dcm([ 0; 0; dcm2rpy(dcm1)(3) ]); % ignore roll/pitch
-    shift = yawdcm * shift + shift1;
-    dcm = yawdcm * dcm;
+        shift = cshift + shift;
+        dcm = cdcm * dcm;
 
-    disp(''); disp('Press a key to continue...'), pause();
-
-    disp(''); disp('=========== Run M ===========');
-    [ dcm2, shift2 ] = usbl_calib(shift_src(src, quat, shift), quat, dcm * xyz);
-    disp('Rotation:'); disp(dcm2rpy(dcm2)' / deg2rad);
-    disp('Shift:'); disp(shift2');
-
-    yawdcm = rpy2dcm([ 0; 0; dcm2rpy(dcm2)(3) ]); % ignore roll/pitch
-    shift = yawdcm * shift + shift2;
-    dcm = yawdcm * dcm;
-
-    disp(''); disp('Press a key to continue...'), pause();
-
-    disp(''); disp('=========== Run F ===========');
-    [ dcm3, shift3 ] = usbl_calib(shift_src(src, quat, shift), quat, dcm * xyz);
-    disp('Rotation:'); disp(dcm2rpy(dcm3)' / deg2rad);
-    disp('Shift:'); disp(shift3');
-
-    shift = dcm3 * shift + shift3;
-    dcm = dcm3 * dcm;
-
-    disp(''); disp('Press a key to continue...'), pause();
-
-    disp(''); disp('=========== Run N ===========');
-    [ dcm4, shift4 ] = usbl_calib(shift_src(src, quat, shift), quat, dcm * xyz);
-    disp('Rotation:'); disp(dcm2rpy(dcm4)' / deg2rad);
-    disp('Shift:'); disp(shift4');
-
-    shift = dcm4 * shift + shift4;
-    dcm = dcm4 * dcm;
-
-    disp(''); disp('Press a key to continue...'), pause();
+        %disp(''); disp('Press a key to continue...'), pause();
+    end
 
     disp(''); disp('=========== Total ===========');
     disp('Rotation:'); disp(dcm2rpy(dcm)' / deg2rad);
@@ -109,13 +79,13 @@ function [ s_geod, s_rpy ] = around(c_geod, r, n)
     s_geod = wmerc2geod(s_wmerc);
 end
 
-function msrc = shift_src(src, quat, shift)
+function msrc = shift_src(src, dcm, shift)
     ned2enu = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
 
     msrc = [];
     for i = 1:size(src, 2)
         ecef_dcm = geod2dcm(ecef2geod(src(:, i)));
-        src_dcm = quat2dcm(quat(:, i));
+        src_dcm = dcm(:, :, i);
 
         msrc = [ msrc, src(:, i) + ecef_dcm * ned2enu * src_dcm * shift ];
     end
