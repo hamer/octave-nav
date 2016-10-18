@@ -6,8 +6,8 @@ function test_fuse()
     deg2rad = pi / 180;
     wgs84();
 
-    usbl_dev_xyz = [ 0; 0; 0 ];
-    usbl_dev_dcm = rpy2dcm([ 0; 0; 30 ] * deg2rad);
+    usbl_dev_xyz = [ 11; 13; 2 ];
+    usbl_dev_dcm = rpy2dcm([ 1; 2; 25 ] * deg2rad);
     ahrs_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
 
     %% test different convertion modes
@@ -44,17 +44,22 @@ function test_fuse()
     % xlim([ -50, 50 ]), ylim([ -150, -50 ]), grid('on');
 
     %% find rotation and shift
-    dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad); % initial values
-    shift = [ 0; 0; 0 ];
+    dcm = rpy2dcm([ 0; 0; 30 ] * deg2rad); % initial values
+    shift = [ 10; 10; 0 ];
 
-    for i = 1:2
+    for i = 1:4
         disp(''); disp([ '=========== Run C ===========' ]);
         [ cdcm, cshift ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
         disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
         disp('Shift:'); disp(cshift');
 
-        shift = cshift + shift;
-        dcm = cdcm * dcm;
+        if i < 3
+            shift = cshift .* [ 1; 1; 0.01 ] + shift;
+            dcm = cdcm * rpy2dcm(dcm2rpy(dcm) .* [ 0.01; 0.01; 1 ]);
+        else
+            shift = cshift + shift;
+            dcm = cdcm * dcm;
+        end
 
         %disp(''); disp('Press a key to continue...'), pause();
     end
