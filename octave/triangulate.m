@@ -59,9 +59,9 @@ function [ nt, tv, te ] = trigen(nv, ne, el)
                 continue;
             end
 
-            if (el2(i) - el2(j) - el2(k) > 0 ||
-                el2(k) - el2(i) - el2(j) > 0 ||
-                el2(j) - el2(k) - el2(i) > 0)
+            if el2(i) - el2(j) - el2(k) > 0 || ...
+               el2(k) - el2(i) - el2(j) > 0 || ...
+               el2(j) - el2(k) - el2(i) > 0
                 continue;
             end
 

@@ -20,7 +20,8 @@ function [ tgt_usbl_xyz ] = usbl_defuse(tgt_ecef, src_ahrs_rpy, src_geod)
         src_dcm = rpy2dcm(src_ahrs_rpy) * ahrs_dev_dcm';
     else % [ roll, pitch, _, true_heading ]
         dcm = rpy2dcm(src_ahrs_rpy) * ahrs_dev_dcm';
-        src_dcm = rpy2dcm([ 0; 0; src_ahrs_rpy(4) - dcm2rpy(dcm)(3) ]) * dcm;
+        rpy = dcm2rpy(dcm);
+        src_dcm = rpy2dcm([ 0; 0; src_ahrs_rpy(4) - rpy(3) ]) * dcm;
     end
 
     src_ecef = geod2ecef(src_geod);

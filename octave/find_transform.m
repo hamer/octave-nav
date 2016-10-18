@@ -30,7 +30,7 @@ function [ dcm, shift ] = find_single_transform(real, meas)
 
     n = zeros(3, 3);
     for i = 1:size(real, 2)
-        n += meas(:, i) * real(:, i)';
+        n = n + meas(:, i) * real(:, i)';
     end
 
     [ u, s, v ] = svd(n);
