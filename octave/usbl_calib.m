@@ -20,8 +20,8 @@ function [ dcm, shift, iter ] = usbl_calib(src, sdcm, xyz)
             continue;
         end
 
-        plot_slbl(tgt_ecef);
-        plot_tri(src, tgt_ecef, reshape(tri_ecef, 3, 3, size(tri_ecef, 2) / 3));
+        % plot_slbl(tgt_ecef);
+        % plot_tri(src, tgt_ecef, reshape(tri_ecef, 3, 3, size(tri_ecef, 2) / 3));
 
         real = [ real, ecef_to_local(mean(tgt_ecef, 2), src_ecef, sdcm(:, :, decim)) ];
         meas = [ meas, tgt_xyz ];
@@ -29,9 +29,9 @@ function [ dcm, shift, iter ] = usbl_calib(src, sdcm, xyz)
 
     [ dcm, shift ] = find_transform(real, meas);
 
-    if size(meas, 1) ~= 0
-        plot_calib(real, meas, dcm * meas + shift);
-    end
+    % if size(meas, 1) ~= 0
+    %     plot_calib(real, meas, dcm * meas + shift);
+    % end
 end
 
 %
