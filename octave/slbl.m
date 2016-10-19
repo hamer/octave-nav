@@ -5,8 +5,9 @@
 %        dist -- array of measured distances to target from corresponding soucre
 %
 % Output: tgt_ecef -- array of valid computed points
-function tgt_ecef = slbl(src_ecef, dist)
+function [ tgt_ecef, tri_ecef ] = slbl(src_ecef, dist)
     tgt_ecef = [];
+    tri_ecef = [];
 
     tv = triangulate(src_ecef);
     n = size(tv, 1);
@@ -27,6 +28,8 @@ function tgt_ecef = slbl(src_ecef, dist)
             else
                 tgt_ecef = [ tgt_ecef, d2 ];
             end
+
+            tri_ecef = [ tri_ecef, crd ];
         end
     end
 end
