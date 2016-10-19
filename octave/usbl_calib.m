@@ -24,8 +24,7 @@ function [ dcm, shift, iter ] = usbl_calib(src, sdcm, xyz)
         meas = [ meas, tgt_xyz ];
     end
 
-    [ dcm, shift, iter ] = find_transform(real, meas);
-    disp('Iterations during calibration:'), disp(iter);
+    [ dcm, shift ] = find_transform(real, meas);
 
     % if size(meas, 1) ~= 0
     %     plot_calib(real, meas, dcm * meas + shift);

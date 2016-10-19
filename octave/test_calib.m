@@ -15,11 +15,9 @@ function test_calib()
     noise = 2 * namp * (rand(size(real)) - 0.5);
     meas = sxyz' + rpy2dcm(srpy' * deg2rad) * real + noise;
 
-    [ dcm, shift, n ] = find_transform(meas, real);
+    [ dcm, shift ] = find_transform(meas, real);
 
     %% answer
     txyz = shift'
     trpy = dcm2rpy(dcm)' / deg2rad
-
-    iter = n
 end
