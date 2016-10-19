@@ -6,8 +6,8 @@ function test_fuse()
     deg2rad = pi / 180;
     wgs84();
 
-    usbl_dev_xyz = [ 11; 13; 2 ];
-    usbl_dev_dcm = rpy2dcm([ 1; 2; 25 ] * deg2rad);
+    usbl_dev_xyz = [ -5; 0.2; 2 ];
+    usbl_dev_dcm = rpy2dcm([ 0; 0; 75 ] * deg2rad);
     ahrs_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
 
     %% test different convertion modes
@@ -30,38 +30,34 @@ function test_fuse()
     %% generate target locations (25m west, 20m deep)
     tgt_wmerc = geod2wmerc(cnt_geod) + [ -25 * geod2scale(cnt_geod); 0; -20 ];
     tgt_ecef = zeros(3, size(src_geod, 2)) + geod2ecef(wmerc2geod(tgt_wmerc));
-    tgt_ecef = tgt_ecef + 0.25 * (rand(size(tgt_ecef)) - 0.5);
+    %tgt_ecef = tgt_ecef + 0.25 * (rand(size(tgt_ecef)) - 0.5);
 
     %% compute required data (ECEF for vessel, LF for target and vessel rotations)
     src = geod2ecef(src_geod);
     sdcm = rpy2dcm(src_rpy);
     xyz = [];
     for i = 1:size(tgt_ecef, 2)
-        xyz = [ xyz, usbl_defuse(tgt_ecef(:, i), src_rpy(:, i), src_geod(:, i)) + 0.25 * (rand(3, 1) - 0.5) ];
+        %xyz = [ xyz, usbl_defuse(tgt_ecef(:, i), src_rpy(:, i), src_geod(:, i)) + 0.25 * (rand(3, 1) - 0.5) ];
+        xyz = [ xyz, usbl_defuse(tgt_ecef(:, i), src_rpy(:, i), src_geod(:, i)) ];
     end
 
     % figure(1), plot(xyz(1, :), xyz(2, :), 'r.');
     % xlim([ -50, 50 ]), ylim([ -150, -50 ]), grid('on');
 
     %% find rotation and shift
-    dcm = rpy2dcm([ 0; 0; 30 ] * deg2rad); % initial values
-    shift = [ 10; 10; 0 ];
+    dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad); % initial values
+    shift = [ 0; 0; 0 ];
 
-    for i = 1:4
+    for i = 1:2
         disp(''); disp([ '=========== Run C ===========' ]);
         [ cdcm, cshift ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
         disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
         disp('Shift:'); disp(cshift');
 
-        if i < 3
-            shift = cshift .* [ 1; 1; 0.01 ] + shift;
-            dcm = cdcm * rpy2dcm(dcm2rpy(dcm) .* [ 0.01; 0.01; 1 ]);
-        else
-            shift = cshift + shift;
-            dcm = cdcm * dcm;
-        end
+        shift = cshift + shift;
+        dcm = cdcm * dcm;
 
-        %disp(''); disp('Press a key to continue...'), pause();
+        disp(''); disp('Press a key to continue...'), pause();
     end
 
     disp(''); disp('=========== Total ===========');
@@ -70,8 +66,8 @@ function test_fuse()
 end
 
 function [ pts, rpy ] = circ(n)
-    i = 1:n;
-    phi = 0.75 * 2 * pi .* (i - 1) ./ n;
+    i = (1:n).^2;
+    phi = 0.75 * 2 * pi .* (i - 1) ./ n^2;
     pts = [ cos(phi); sin(phi); zeros(1, n) ];
     rpy = [ zeros(2, n); wrap_2pi(-phi - pi/2) ];
 end
