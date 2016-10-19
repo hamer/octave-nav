@@ -48,16 +48,21 @@ function test_fuse()
     dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad); % initial values
     shift = [ 0; 0; 0 ];
 
-    for i = 1:2
+    eps = 1e-2;
+    for i = 1:100
         disp(''); disp([ '=========== Run C ===========' ]);
         [ cdcm, cshift ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
         disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
         disp('Shift:'); disp(cshift');
 
-        shift = cshift + shift;
         dcm = cdcm * dcm;
+        shift = cshift + shift;
 
-        disp(''); disp('Press a key to continue...'), pause();
+        if norm(cshift) < eps && norm(cdcm - eye(3)) < eps^2
+            break;
+        end
+
+        % disp(''); disp('Press a key to continue...'), pause();
     end
 
     disp(''); disp('=========== Total ===========');
@@ -67,8 +72,8 @@ end
 
 function [ pts, rpy ] = circ(n)
     i = (1:n).^2;
-    phi = 0.75 * 2 * pi .* (i - 1) ./ n^2;
-    pts = [ cos(phi); sin(phi); zeros(1, n) ];
+    phi = 0.95 * 2 * pi .* (i - 1) ./ n^2;
+    pts = [ cos(2 * phi + pi / 2); sin(phi); zeros(1, n) ];
     rpy = [ zeros(2, n); wrap_2pi(-phi - pi/2) ];
 end
 
