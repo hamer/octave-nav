@@ -5,33 +5,34 @@
 %        sdcm -- array of corresponding LF rotations (NED)
 %        xyz -- array of corresponding measured target coordinates in LF
 function [ dcm, shift, iter ] = usbl_calib(src, sdcm, xyz)
-    real = [];
-    meas = [];
+    idx = [];
+    tgt = [];
+    tri = [];
 
     step = floor(size(src, 2) / 15);
     for i = 1:step
         decim = i:step:size(src, 2);
-
-        src_ecef = src(:, decim);
-        tgt_xyz = xyz(:, decim);
-        [ tgt_ecef, tri_ecef ] = slbl(src_ecef, sqrt(sum(tgt_xyz.^2, 1)));
+        [ tgt_ecef, tri_ecef ] = slbl(src(:, decim), sqrt(sum(xyz(:, decim).^2, 1)));
 
         if size(tgt_ecef, 1) == 0
             continue;
         end
 
-        % plot_slbl(tgt_ecef);
-        % plot_tri(src, tgt_ecef, reshape(tri_ecef, 3, 3, size(tri_ecef, 2) / 3));
-
-        real = [ real, ecef_to_local(mean(tgt_ecef, 2), src_ecef, sdcm(:, :, decim)) ];
-        meas = [ meas, tgt_xyz ];
+        idx = [ idx, decim ];
+        tgt = [ tgt, tgt_ecef ];
+        tri = [ tri, tri_ecef ];
     end
 
-    [ dcm, shift ] = find_transform(real, meas);
+    if size(idx, 1) ~= 0
+        plot_slbl(tgt);
+        plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
 
-    % if size(meas, 1) ~= 0
-    %     plot_calib(real, meas, dcm * meas + shift);
-    % end
+        meas = xyz(:, idx);
+        real = ecef_to_local(mean(tgt, 2), src(:, idx), sdcm(:, :, idx));
+
+        [ dcm, shift ] = find_transform(real, meas);
+        plot_calib(real, meas, dcm * meas + shift);
+    end
 end
 
 %
@@ -65,16 +66,17 @@ function plot_tri(src, tgt, tri)
     o = src_wm(:, 1);
     k = wmerc2scale(o);
 
-    plot((src_wm(1, :) - o(1)) / k, (src_wm(2, :) - o(2)) / k, '.k');
+    plot3((src_wm(1, :) - o(1)) / k, (src_wm(2, :) - o(2)) / k, src_wm(3, :), '.k');
     hold('on'), grid('on');
-    plot((tgt_wm(1, :) - o(1)) / k, (tgt_wm(2, :) - o(2)) / k, '.r');
+    plot3((tgt_wm(1, :) - o(1)) / k, (tgt_wm(2, :) - o(2)) / k, tgt_wm(3, :), '.r');
 
     n = size(tri, 3);
     for i = 1:n
-        t = (geod2wmerc(ecef2geod(tri(:, :, i))) - o) / k;
+        t = geod2wmerc(ecef2geod(tri(:, :, i)));
+        t(1:2, :) = (t(1:2, :) - o(1:2)) / k;
         t = [ t, t(:, 1) ];
 
-        plot(t(1, :), t(2, :), '-');
+        plot3(t(1, :), t(2, :), t(3, :), '-');
     end
 end
 
