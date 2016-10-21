@@ -4,7 +4,10 @@
 % Input: src -- array of CRP coordinates (ECEF)
 %        sdcm -- array of corresponding LF rotations (NED)
 %        xyz -- array of corresponding measured target coordinates in LF
-function [ dcm, shift, iter ] = usbl_calib(src, sdcm, xyz)
+function [ dcm, shift ] = usbl_calib(src, sdcm, xyz)
+    dcm = [];
+    shift = [];
+
     idx = [];
     tgt = [];
     tri = [];

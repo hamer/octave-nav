@@ -20,7 +20,7 @@ function [ tgt_ecef, tri_ecef ] = slbl(src_ecef, dist)
         r = dist(tv(i, :));
 
         [ d1, d2, valid ] = trilat(crd(:, 1), crd(:, 2), crd(:, 3), r(1), r(2), r(3));
-        if valid
+        if valid ~= 0
             % Source points supposed to be on the surface. This means, that
             % one of solutions will be below the surface.
             if (norm(d1) < norm(d2))
