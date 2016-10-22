@@ -25,8 +25,8 @@ function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
 
     ntri = size(tgt, 2);
     if ntri ~= 0
-        plot_slbl(tgt);
-        plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
+        % plot_slbl(tgt);
+        % plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
 
         etgt = mean(tgt, 2);
         if nargin > 3 % target altitude is not defined
@@ -39,7 +39,7 @@ function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
         real = ecef_to_local(etgt, src, sdcm);
 
         [ dcm, shift ] = find_transform(real, meas);
-        plot_calib(real, meas, dcm * meas + shift);
+        % plot_calib(real, meas, dcm * meas + shift);
     end
 end
 
