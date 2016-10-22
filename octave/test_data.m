@@ -1,4 +1,5 @@
 function [ ntri, dcm, shift ] = test_data(name, addr, ishift, talt)
+    deg2rad = pi / 180;
     wgs84();
 
     data = csvread(name, 0, 1);
