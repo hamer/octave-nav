@@ -4,11 +4,11 @@
 % Input: src -- array of CRP coordinates (ECEF)
 %        sdcm -- array of corresponding LF rotations (NED)
 %        xyz -- array of corresponding measured target coordinates in LF
-function [ dcm, shift ] = usbl_calib(src, sdcm, xyz)
+function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
     dcm = [];
     shift = [];
+    ntri = 0;
 
-    idx = [];
     tgt = [];
     tri = [];
 
@@ -17,21 +17,26 @@ function [ dcm, shift ] = usbl_calib(src, sdcm, xyz)
         decim = i:step:size(src, 2);
         [ tgt_ecef, tri_ecef ] = slbl(src(:, decim), sqrt(sum(xyz(:, decim).^2, 1)));
 
-        if size(tgt_ecef, 1) == 0
-            continue;
+        if size(tgt_ecef, 1) ~= 0
+            tgt = [ tgt, tgt_ecef ];
+            tri = [ tri, tri_ecef ];
         end
-
-        idx = [ idx, decim ];
-        tgt = [ tgt, tgt_ecef ];
-        tri = [ tri, tri_ecef ];
     end
 
-    if size(idx, 1) ~= 0
+    ntri = size(tgt, 2);
+    if ntri ~= 0
         plot_slbl(tgt);
         plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
 
-        meas = xyz(:, idx);
-        real = ecef_to_local(mean(tgt, 2), src(:, idx), sdcm(:, :, idx));
+        etgt = mean(tgt, 2);
+        if nargin > 3 % target altitude is not defined
+            gtgt = ecef2geod(etgt);
+            gtgt(3) = talt;
+            etgt = geod2ecef(gtgt);
+        end
+
+        meas = xyz;
+        real = ecef_to_local(etgt, src, sdcm);
 
         [ dcm, shift ] = find_transform(real, meas);
         plot_calib(real, meas, dcm * meas + shift);

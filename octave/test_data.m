@@ -1,15 +1,14 @@
-function test_data(name, addr)
-    deg2rad = pi / 180;
+function [ ntri, dcm, shift ] = test_data(name, addr, ishift, talt)
     wgs84();
 
     data = csvread(name, 0, 1);
-    data = data(find(data(:, 37) ~= 0), :); % filter out records without gps
-    data = data(find(data(:, 3) == addr), :); % filter out records without gps
+    data = data(find(data(:, 37) ~= 0), :);     % filter out records without gps
+    data = data(find(data(:, 3) == addr), :);   % filter out records with wrong address
     nlines = size(data, 1);
 
     raw_xyz = data(:, 10:12)';      % XYZ coordinates of a target in USBL frame
-    src_rpy = data(:, 29:31)';      % vessels roll/pitch/yaw
-    crp_geod = data(:, 37:39)';     % lat, lon and alt of CRP (not a GPS antenna)
+    src_rpy = data(:, 29:31)';      % vessels Roll/Pitch/Yaw
+    crp_geod = data(:, 37:39)';     % Lat, Lon and Alt of CRP
 
     %% prepare initial data
     xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
@@ -17,19 +16,30 @@ function test_data(name, addr)
     src = geod2ecef(crp_geod);
 
     %% find rotation and shift
-    dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad); % initial values
-    shift = [ 0; 0; 2 ];
+    dcm = [ 1, 0, 0; 0, 1, 0; 0, 0, 1 ];
 
-    disp(''); disp([ '=========== Run C ===========' ]);
-    [ cdcm, cshift ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
-
-    if isempty(cdcm)
-        disp('No solution found');
-        return;
+    if nargin > 2
+        shift = ishift';
+    else
+        shift = [ 0; 0; 0 ];
     end
 
-    disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
-    disp('Shift:'); disp(cshift');
+    if nargin > 3
+        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz, talt);
+    else
+        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
+    end
+
+    if ntri == 0
+        disp('No solutions found');
+    else
+        dcm = cdcm * dcm;
+        shift = shift + cshift;
+
+        disp('Triangles:'); disp(ntri);
+        disp('Rotation:'); disp(dcm2rpy(dcm)' / deg2rad);
+        disp('Shift:'); disp(shift');
+    end
 end
 
 function msrc = shift_src(src, dcm, shift)
