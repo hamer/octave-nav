@@ -65,13 +65,26 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         subplot(2, 1, 2), plot((dyaw - mean(dyaw)) / deg2rad, '-b'), grid('on'), title('Yaw difference');
     end
 
-    [ tgt_ecef, dcms ] = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
+    [ tgt_ecef, dcms, tgt_ned ] = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
     plot_target(geod2wmerc(ecef2geod(tgt_ecef)), geod2wmerc(crp_geod));
 
     rpys = dcm2rpy(dcms);
     figure(5);
     subplot(2, 1, 1), plot((rpys(1, :)) / deg2rad, '-b'), grid('on'), title('Fused roll');
     subplot(2, 1, 2), plot((rpys(2, :)) / deg2rad, '-b'), grid('on'), title('Fused pitch');
+
+    figure(6);
+    subplot(2, 1, 1), plot(raw_xyz(3, :)), grid('on'), title('Raw Z');
+    subplot(2, 1, 2), plot(tgt_ned(3, :)), grid('on'), title('Fused D');
+
+    brng = atan2(raw_xyz(2, :), raw_xyz(1, :));
+    dist = sqrt(raw_xyz(1, :).^2 + raw_xyz(2, :).^2 + raw_xyz(3, :).^2);
+    hdist = sqrt(raw_xyz(1, :).^2 + raw_xyz(2, :).^2);
+    elev = acos(hdist ./ dist);
+
+    figure(7);
+    subplot(2, 1, 1), plot(brng / deg2rad), grid('on'), title('Raw Bearing');
+    subplot(2, 1, 2), plot(elev / deg2rad), grid('on'), title('Raw Elevation');
 end
 
 function plot_target(tgt, src)
