@@ -1,4 +1,16 @@
-function [ ntri, dcm, shift ] = test_data(name, addr, ishift, talt)
+%
+% Calibration function implementation
+%
+% Arguments:
+%   * Filename (e.g. '2016-10-21-data-01.csv'). Only USBL lines should be exported;
+%   * Acoustic address for calibrating target;
+%   * Initial shift (of USBL relative to CRP in vessel frame).
+%   * (optional) Altitude of target
+%
+% Example:
+%   sinaps_calib('test-data.csv', 2, [ 0, 0, 2 ], 25);
+%
+function [ ntri, dcm, shift ] = sinaps_calib(name, addr, ishift, talt)
     deg2rad = pi / 180;
     wgs84();
 
@@ -17,8 +29,6 @@ function [ ntri, dcm, shift ] = test_data(name, addr, ishift, talt)
     src = geod2ecef(crp_geod);
 
     %% find rotation and shift
-    dcm = [ 1, 0, 0; 0, 1, 0; 0, 0, 1 ];
-
     if nargin > 2
         shift = ishift';
     else
@@ -26,20 +36,19 @@ function [ ntri, dcm, shift ] = test_data(name, addr, ishift, talt)
     end
 
     if nargin > 3
-        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz, talt);
+        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, xyz, talt);
     else
-        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, dcm * xyz);
+        [ cdcm, cshift, ntri ] = usbl_calib(shift_src(src, sdcm, shift), sdcm, xyz);
     end
 
     if ntri == 0
         disp('No solutions found');
     else
-        dcm = cdcm * dcm;
         shift = shift + cshift;
 
         disp('Triangles:'); disp(ntri);
-        disp('Rotation:'); disp(dcm2rpy(dcm)' / deg2rad);
         disp('Shift:'); disp(shift');
+        disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
     end
 end
 
