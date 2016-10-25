@@ -46,6 +46,10 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
+    figure(3);
+    subplot(2, 1, 1), plot((src_rpy(1, :)) / deg2rad, '-b'), grid('on'), title('Raw roll');
+    subplot(2, 1, 2), plot((src_rpy(2, :)) / deg2rad, '-b'), grid('on'), title('Raw pitch');
+
     enu2ned = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
 
     for i = 1:size(src_rpy, 2)
@@ -55,7 +59,10 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
 
     if ehdt_flag == 1
         dyaw = src_rpy(4, :) - src_rpy(3, :);
-        figure(4), plot((dyaw - mean(dyaw)) / deg2rad, '-b'), grid('on'), title('Yaw difference');
+        figure(4);
+
+        subplot(2, 1, 1), plot(unwrap(src_rpy(4, :)) / deg2rad, '-b'), grid('on'), title('Yaw');
+        subplot(2, 1, 2), plot((dyaw - mean(dyaw)) / deg2rad, '-b'), grid('on'), title('Yaw difference');
     end
 
     [ tgt_ecef, dcms ] = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
