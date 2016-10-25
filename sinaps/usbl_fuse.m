@@ -31,7 +31,7 @@ function [ tgt, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_
         if size(src_ahrs_rpy, 1) == 3 % [ roll, pitch, heading ]
             src_dcm(:, :, i) = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
         else % [ roll, pitch, _, true_heading ]
-            dcm = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
+            dcm = rpy2dcm(src_ahrs_rpy(1:3, i)) * ahrs_dev_dcm';
             rpy = dcm2rpy(dcm);
             src_dcm(:, :, i) = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) - rpy(3) ]) * dcm;
         end
