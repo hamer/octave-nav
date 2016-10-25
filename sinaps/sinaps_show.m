@@ -36,16 +36,14 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     nlines = size(data, 1);
 
     raw_xyz = data(:, 10:12)';      % XYZ coordinates of a target in USBL frame
-    raw_rpy = data(:, 26:28)';      % raw Roll/Pitch/Yaw
-    ehdt = data(:, 31)';            % vessels Yaw
     crp_geod = data(:, 37:39)';     % Lat, Lon and Alt of CRP
 
     if strcmp(arot, 'fused') == 1
         src_rpy = data(:, 29:31)';  % vessels Roll/Pitch/Yaw
     elseif nargin < 6|| ehdt_flag ~= 1
-        src_rpy = raw_rpy;
+        src_rpy = data(:, 26:28)';  % raw Roll/Pitch/Yaw
     else
-        src_rpy = [ raw_rpy; ehdt ];
+        src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
     xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
