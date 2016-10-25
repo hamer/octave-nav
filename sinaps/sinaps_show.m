@@ -1,4 +1,19 @@
-function sinaps_show(name, addr, rot, shift)
+%
+% SiNAPS logs visualizes
+%
+% Arguments:
+%   * Filename (e.g. '2016-10-21-data-01.csv'). Only USBL lines should be exported;
+%   * Acoustic address for calibrating target;
+%   * USBL-rotation (Roll/Pitch/Yaw)
+%   * USBL-location (X, Y, Z)
+%   * AHRS-rotation (Roll/Pitch/Yaw) or 'fused'
+%   * External heading flag (use fused heading as it was from GNSS)
+%
+% Example:
+%   sinaps_show('test-data.csv', 2, [ 0, 0, -132 ], [ 0, 0, 2 ], [ 0, 0, -132 ], 1);
+%   sinaps_show('test-data.csv', 2, [ 0, 0, -132 ], [ 0, 0, 2 ], 'fused');
+%
+function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
@@ -6,9 +21,17 @@ function sinaps_show(name, addr, rot, shift)
     deg2rad = pi / 180;
     wgs84();
 
-    usbl_dev_xyz = shift';
-    usbl_dev_dcm = rpy2dcm(rot' * deg2rad);
-    ahrs_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
+    if nargin < 5 || strcmp(arot, 'fused')
+        arot = [ 0, 0, 0 ];
+    end
+
+    if nargin < 6
+        ehdt_flag = 0;
+    end
+
+    usbl_dev_xyz = ushift';
+    usbl_dev_dcm = rpy2dcm(urot' * deg2rad);
+    ahrs_dev_dcm = rpy2dcm(arot' * deg2rad);
 
     data = csvread(name, 0, 1);
     data = data(find(data(:, 37) ~= 0), :);     % filter out records without gps
@@ -16,8 +39,17 @@ function sinaps_show(name, addr, rot, shift)
     nlines = size(data, 1);
 
     raw_xyz = data(:, 10:12)';      % XYZ coordinates of a target in USBL frame
-    src_rpy = data(:, 29:31)';      % vessels Roll/Pitch/Yaw
+    raw_rpy = data(:, 26:28)';      % raw Roll/Pitch/Yaw
+    ehdt = data(:, 31)';            % vessels Yaw
     crp_geod = data(:, 37:39)';     % Lat, Lon and Alt of CRP
+
+    if strcmp(arot, 'fused')
+        src_rpy = data(:, 29:31)';  % vessels Roll/Pitch/Yaw
+    elseif ehdt_flag == 1
+        src_rpy = [ raw_rpy; ehdt ];
+    else
+        src_rpy = raw_rpy;
+    end
 
     xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
 
