@@ -46,8 +46,25 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
-    tgt_ecef = usbl_fuse([ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz, src_rpy, crp_geod);
+    enu2ned = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
+
+    for i = 1:size(src_rpy, 2)
+        % convert USBL-RPY to LF-RPY (only for internal AHRS)
+        src_rpy(1:3, i) = dcm2rpy(enu2ned * rpy2dcm(src_rpy(1:3, i)) * enu2ned);
+    end
+
+    if ehdt_flag == 1
+        dyaw = src_rpy(4, :) - src_rpy(3, :);
+        figure(4), plot((dyaw - mean(dyaw)) / deg2rad, '-b'), grid('on'), title('Yaw difference');
+    end
+
+    [ tgt_ecef, dcms ] = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
     plot_target(geod2wmerc(ecef2geod(tgt_ecef)), geod2wmerc(crp_geod));
+
+    rpys = dcm2rpy(dcms);
+    figure(5);
+    subplot(2, 1, 1), plot((rpys(1, :)) / deg2rad, '-b'), grid('on'), title('Fused roll');
+    subplot(2, 1, 2), plot((rpys(2, :)) / deg2rad, '-b'), grid('on'), title('Fused pitch');
 end
 
 function plot_target(tgt, src)
