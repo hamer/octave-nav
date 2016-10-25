@@ -21,17 +21,14 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     deg2rad = pi / 180;
     wgs84();
 
-    if nargin < 5 || strcmp(arot, 'fused')
-        arot = [ 0, 0, 0 ];
-    end
-
-    if nargin < 6
-        ehdt_flag = 0;
+    if nargin < 5 || strcmp(arot, 'fused') == 1
+        ahrs_dev_dcm = [ 1, 0, 0; 0, 1, 0; 0, 0, 1 ];
+    else
+        ahrs_dev_dcm = rpy2dcm(arot' * deg2rad);
     end
 
     usbl_dev_xyz = ushift';
     usbl_dev_dcm = rpy2dcm(urot' * deg2rad);
-    ahrs_dev_dcm = rpy2dcm(arot' * deg2rad);
 
     data = csvread(name, 0, 1);
     data = data(find(data(:, 37) ~= 0), :);     % filter out records without gps
@@ -43,12 +40,12 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     ehdt = data(:, 31)';            % vessels Yaw
     crp_geod = data(:, 37:39)';     % Lat, Lon and Alt of CRP
 
-    if strcmp(arot, 'fused')
+    if strcmp(arot, 'fused') == 1
         src_rpy = data(:, 29:31)';  % vessels Roll/Pitch/Yaw
-    elseif ehdt_flag == 1
-        src_rpy = [ raw_rpy; ehdt ];
-    else
+    elseif nargin < 6|| ehdt_flag ~= 1
         src_rpy = raw_rpy;
+    else
+        src_rpy = [ raw_rpy; ehdt ];
     end
 
     xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
