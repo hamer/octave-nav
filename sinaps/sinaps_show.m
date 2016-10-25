@@ -68,13 +68,15 @@ function plot_target(tgt, src)
 
     xt = (tgt(1, :) - src(1, 1)) / k;
     yt = (tgt(2, :) - src(2, 1)) / k;
+    zt = tgt(3, :);
 
     xs = (src(1, :) - src(1, 1)) / k;
     ys = (src(2, :) - src(2, 1)) / k;
+    zs = src(3, :);
 
     figure(1), hold('off');
-    plot(xs, ys, '.k');
+    plot3(xs, ys, zs, '.k');
     hold('on'), grid('on');
-    plot(xt, yt, '.r');
+    plot3(xt, yt, zt, '.r');
     legend('CRP', 'Target'), title('Target');
 end
