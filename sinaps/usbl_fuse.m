@@ -16,7 +16,7 @@ function [ rs, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_g
 
     ned2enu = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
 
-    tgt_xyz = usbl_dev_xyz + usbl_dev_dcm * tgt_usbl_xyz;
+    tgt = usbl_dev_xyz + usbl_dev_dcm * tgt_usbl_xyz; % LF XYZ
 
     if nargin < 2
         rs = tgt_xyz;
@@ -27,7 +27,6 @@ function [ rs, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_g
 
     n = size(src_ahrs_rpy, 2);
     src_dcm = zeros(3, 3, n);
-    tgt = zeros(3, n);
 
     for i = 1:n
         if size(src_ahrs_rpy, 1) == 3 % [ roll, pitch, heading ]
@@ -38,7 +37,7 @@ function [ rs, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_g
             src_dcm(:, :, i) = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) - rpy(3) ]) * dcm;
         end
 
-        tgt(:, i) = src_dcm(:, :, i) * tgt_xyz(:, i);
+        tgt(:, i) = src_dcm(:, :, i) * tgt(:, i); % LF NED
     end
 
     if nargin < 3
@@ -51,7 +50,7 @@ function [ rs, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_g
     ecef_dcm = geod2dcm(src_geod);
 
     for i = 1:n
-        tgt(:, i) = src_ecef(:, i) + ecef_dcm(:, :, i) * ned2enu * tgt(:, i);
+        tgt(:, i) = src_ecef(:, i) + ecef_dcm(:, :, i) * ned2enu * tgt(:, i); % ECEF
     end
 
     rs = tgt;
