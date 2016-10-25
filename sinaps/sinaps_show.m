@@ -46,15 +46,7 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
-    xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
-
-    n = size(xyz, 2);
-    tgt_ecef = zeros(3, n);
-
-    for i = 1:n
-        tgt_ecef(:, i) = usbl_fuse(xyz(:, i), src_rpy(:, i), crp_geod(:, i));
-    end
-
+    tgt_ecef = usbl_fuse([ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz, src_rpy, crp_geod);
     plot_target(geod2wmerc(ecef2geod(tgt_ecef)), geod2wmerc(crp_geod));
 end
 

@@ -20,27 +20,39 @@ function [ rs, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_g
 
     if nargin < 2
         rs = tgt_xyz;
+        src_dcm = [];
+        src_ecef = [];
         return;
     end
 
-    if length(src_ahrs_rpy) == 3 % [ roll, pitch, heading ]
-        src_dcm = rpy2dcm(src_ahrs_rpy) * ahrs_dev_dcm';
-    else % [ roll, pitch, _, true_heading ]
-        dcm = rpy2dcm(src_ahrs_rpy) * ahrs_dev_dcm';
-        src_dcm = rpy2dcm([ 0; 0; src_ahrs_rpy(4) - dcm2rpy(dcm)(3) ]) * dcm;
+    n = size(src_ahrs_rpy, 2);
+    src_dcm = zeros(3, 3, n);
+    tgt = zeros(3, n);
+
+    for i = 1:n
+        if size(src_ahrs_rpy, 1) == 3 % [ roll, pitch, heading ]
+            src_dcm(:, :, i) = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
+        else % [ roll, pitch, _, true_heading ]
+            dcm = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
+            rpy = dcm2rpy(dcm);
+            src_dcm(:, :, i) = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) - rpy(3) ]) * dcm;
+        end
+
+        tgt(:, i) = src_dcm(:, :, i) * tgt_xyz(:, i);
     end
 
-    tgt_ned = src_dcm * tgt_xyz;
-
     if nargin < 3
-        rs = tgt_ned;
+        rs = tgt;
+        src_ecef = [];
         return;
     end
 
     src_ecef = geod2ecef(src_geod);
     ecef_dcm = geod2dcm(src_geod);
 
-    tgt_ecef = src_ecef + ecef_dcm * ned2enu * tgt_ned;
+    for i = 1:n
+        tgt(:, i) = src_ecef(:, i) + ecef_dcm(:, :, i) * ned2enu * tgt(:, i);
+    end
 
-    rs = tgt_ecef;
+    rs = tgt;
 end
