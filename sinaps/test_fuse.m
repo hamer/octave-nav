@@ -1,5 +1,5 @@
 function test_fuse()
-    global usbl_dev_xyz; % shift in local frame of USBL relative to GNSS
+    global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
 

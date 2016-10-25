@@ -10,7 +10,7 @@
 % where enu2ned == ned2enu == rpy2dcm([ pi; 0; pi/2 ])
 %
 function [ tgt_usbl_xyz ] = usbl_defuse(tgt_ecef, src_ahrs_rpy, src_geod)
-    global usbl_dev_xyz; % shift in local frame of USBL relative to GNSS
+    global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
 
