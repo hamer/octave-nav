@@ -46,6 +46,12 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
+
+    tgt_enu = [];
+    for i = 1:size(src_rpy, 2)
+        tgt_enu = [ tgt_enu, rpy2dcm(src_rpy(1:3, i)) * raw_xyz(:, i) ];
+    end
+
     figure(3);
     subplot(2, 1, 1), plot((src_rpy(1, :)) / deg2rad, '-b'), grid('on'), title('Raw roll');
     subplot(2, 1, 2), plot((src_rpy(2, :)) / deg2rad, '-b'), grid('on'), title('Raw pitch');
@@ -84,12 +90,19 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     elev = acos(hdist ./ dist);
 
     figure(7);
-    subplot(2, 1, 1), plot(brng / deg2rad), grid('on'), title('Raw Bearing');
+    subplot(2, 1, 1), plot(unwrap(brng) / deg2rad), grid('on'), title('Raw Bearing');
     subplot(2, 1, 2), plot(elev / deg2rad), grid('on'), title('Raw Elevation');
 
     figure(8);
     subplot(2, 1, 1), plot(dist), grid('on'), title('Raw Distance');
     subplot(2, 1, 2), plot(hdist), grid('on'), title('Raw Distance XOY');
+
+    figure(9), plot3(tgt_enu(1, :), tgt_enu(2, :), tgt_enu(3, :), '.k'), grid('on'), title('Raw ENU');
+
+    figure(10);
+    subplot(3, 1, 1), plot(tgt_enu(3, :)), title('Raw U');
+    subplot(3, 1, 2), plot(-tgt_ned(3, :)), title('Fused D (negated)');
+    subplot(3, 1, 3), plot(tgt_geod(3, :)), title('Fused Alt');
 end
 
 function plot_target(tgt, src)
