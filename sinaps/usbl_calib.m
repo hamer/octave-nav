@@ -26,7 +26,6 @@ function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
 
     ntri = size(tgt, 2);
     if ntri ~= 0
-        % plot_slbl(tgt);
         % plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
 
         etgt = mean(tgt, 2);
@@ -54,22 +53,21 @@ end
 % Output: tgt_xyz -- coordinates of tgt_ecef in local frame
 function tgt_xyz = ecef_to_local(tgt_ecef, src_ecef, src_dcm)
     enu2ned = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
-    tgt_xyz = [];
 
     n = size(src_ecef, 2);
     if n == 0
         return;
     end
 
-    ecef_dcm = geod2dcm(ecef2geod(src_ecef));
-
+    tgt_xyz = zeros(3, n);
     for i = 1:n
-        tgt_xyz = [ tgt_xyz, src_dcm(:, :, i)' * enu2ned * ecef_dcm(:, :, i)' * (tgt_ecef - src_ecef(:, i)) ];
+        ecef_dcm = geod2dcm(ecef2geod(src_ecef(:, i)));
+        tgt_xyz(:, i) = src_dcm(:, :, i)' * enu2ned * ecef_dcm' * (tgt_ecef - src_ecef(:, i));
     end
 end
 
 function plot_tri(src, tgt, tri)
-    figure(5), hold('off');
+    figure(1), hold('off');
     src_wm = geod2wmerc(ecef2geod(src));
     tgt_wm = geod2wmerc(ecef2geod(tgt));
     o = src_wm(:, 1);
@@ -89,23 +87,12 @@ function plot_tri(src, tgt, tri)
     end
 end
 
-function plot_slbl(tgt_ecef)
-    wm = geod2wmerc(ecef2geod(tgt_ecef));
-    k = wmerc2scale(wm(:, 1));
-
-    x = (wm(1, :) - wm(1, 1)) * 100 / k;
-    y = (wm(2, :) - wm(2, 1)) * 100 / k;
-
-    figure(3), title('SLBL');
-    subplot(2, 1, 1), plot(x, y, '.-'), grid('on'), title('SLBL Lat/Lon [cm]');
-    subplot(2, 1, 2), plot(wm(3, :), '.-'), title('SLBL Altitude [m]');
-end
-
 function plot_calib(real, meas, corr)
-    figure(2), hold('off'), title('USBL-frame target coordinates');
+    figure(2), hold('off');
     plot3(real(1, :), real(2, :), -real(3, :), 'k.');
     hold('on'), grid('on');
     plot3(corr(1, :), corr(2, :), -corr(3, :), 'rx');
     plot3(meas(1, :), meas(2, :), -meas(3, :), 'b.');
-    legend('real', 'corr', 'meas');
+    legend('Fused', 'Rotation of Fused', 'Measured');
+    title('USBL-frame target coordinates');
 end
