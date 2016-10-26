@@ -19,6 +19,6 @@ function test_fuse()
     tgt_usbl_xyz = [ 0; 0; 0 ];
     src_ahrs_rpy = [ 0; 0; 0 ] * deg2rad;
     src_geod = [ 0; 0; 0 ];
-    [ tgt_ecef, src_dcm, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_geod);
-    tgt_back_xyz = usbl_defuse(tgt_ecef, src_ahrs_rpy, src_geod);
+    [ tgt_geod, src_dcm ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_geod);
+    tgt_back_xyz = usbl_defuse(tgt_geod, src_ahrs_rpy, src_geod);
 end

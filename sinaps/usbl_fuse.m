@@ -9,7 +9,7 @@
 %       rpy_to_ned = dcm2rpy(enu2ned * rpy2dcm(rpy_to_enu));
 % where enu2ned == ned2enu == rpy2dcm([ pi; 0; pi/2 ])
 %
-function [ tgt, src_dcm, tgt_ned, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_geod)
+function [ tgt, src_dcm ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_geod)
     global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
@@ -39,17 +39,15 @@ function [ tgt, src_dcm, tgt_ned, src_ecef ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_
         tgt(:, i) = src_dcm(:, :, i) * tgt(:, i); % LF NED
     end
 
-    tgt_ned = tgt;
-
     if nargin < 3
-        src_ecef = [];
         return;
     end
 
-    src_ecef = geod2ecef(src_geod);
-    ecef_dcm = geod2dcm(src_geod);
-
     for i = 1:n
-        tgt(:, i) = src_ecef(:, i) + ecef_dcm(:, :, i) * ned2enu * tgt(:, i); % ECEF
+        src_ecef = geod2ecef(src_geod(:, i));
+        ecef_dcm = geod2dcm(src_geod(:, i));
+        tgt(:, i) = src_ecef + ecef_dcm * ned2enu * tgt(:, i); % ECEF
     end
+
+    tgt = ecef2geod(tgt); % GEOD
 end

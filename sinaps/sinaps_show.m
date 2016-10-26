@@ -65,8 +65,9 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         subplot(2, 1, 2), plot((dyaw - mean(dyaw)) / deg2rad, '-b'), grid('on'), title('Yaw difference');
     end
 
-    [ tgt_ecef, dcms, tgt_ned ] = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
-    plot_target(geod2wmerc(ecef2geod(tgt_ecef)), geod2wmerc(crp_geod));
+    tgt_geod = usbl_fuse(enu2ned * raw_xyz, src_rpy, crp_geod);
+    [ tgt_ned, dcms ] = usbl_fuse(enu2ned * raw_xyz, src_rpy);
+    plot_target(geod2wmerc(tgt_geod), geod2wmerc(crp_geod));
 
     rpys = dcm2rpy(dcms);
     figure(5);
