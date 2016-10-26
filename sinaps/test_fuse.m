@@ -11,14 +11,14 @@ function test_fuse()
     ahrs_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
 
     %% test different convertion modes
-    % usbl_fuse([ 0; 0; 0 ], [ 0; 0; 0 ] * deg2rad, [ 0; 0; 0 ])
-    % usbl_fuse([ 0; 0; 0 ], [ 0; 0; 0 ] * deg2rad)
+    % usbl_fuse([ 0; 0; 0 ], [ 0; 0; 0 ] * deg2rad, 0, [ 0; 0; 0 ])
+    % usbl_fuse([ 0; 0; 0 ], [ 0; 0; 0 ] * deg2rad, 0)
     % usbl_fuse([ 0; 0; 0 ])
 
     %% test forward/backward fusion
     tgt_usbl_xyz = [ 0; 0; 0 ];
     src_ahrs_rpy = [ 0; 0; 0 ] * deg2rad;
     src_geod = [ 0; 0; 0 ];
-    [ tgt_geod, src_dcm ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, src_geod);
-    tgt_back_xyz = usbl_defuse(tgt_geod, src_ahrs_rpy, src_geod);
+    [ tgt_geod, src_dcm ] = usbl_fuse(tgt_usbl_xyz, src_ahrs_rpy, 0, src_geod);
+    tgt_back_xyz = usbl_defuse(tgt_geod, src_ahrs_rpy, 0, src_geod);
 end

@@ -6,15 +6,15 @@
 %        src_geod -- geodetic coordinates measured by GNSS
 %
 % To convert RPY "to ENU" to "to NED":
-%       rpy_to_ned = dcm2rpy(enu2ned * rpy2dcm(rpy_to_enu));
-% where enu2ned == ned2enu == rpy2dcm([ pi; 0; pi/2 ])
+%       rpy_to_ned = dcm2rpy(flip * rpy2dcm(rpy_to_enu));
+% where flip == enu2ned == ned2enu == rpy2dcm([ pi; 0; pi/2 ])
 %
-function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, src_geod)
+function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, is_enu, src_geod)
     global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
 
-    enu2ned = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
+    flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
 
     n = size(src_ahrs_rpy, 2);
     tgt = geod2ecef(tgt_geod); % ECEF
@@ -28,18 +28,26 @@ function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, src_geod)
     end
 
     for i = 1:n
-        if size(src_ahrs_rpy, 1) == 3 % [ roll, pitch, heading ]
-            src_dcm = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
-        else % [ roll, pitch, _, true_heading ]
-            dcm_rp = rpy2dcm([ src_ahrs_rpy(1:2, i); 0 ]);
-            dcm_y = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) ]);
-
-            src_dcm = dcm_y * adcm_y * dcm_rp * ahrs_dev_dcm';
+        rpy = src_ahrs_rpy(1:3, i);
+        if size(src_ahrs_rpy, 1) == 4
+            rpy(3) = 0;
         end
 
-        tgt(:, i) = enu2ned * ecef_dcm(:, :, i)' * (tgt(:, i) - src_ecef(:, i)); % LF NED
+        dcm = rpy2dcm(rpy);
+        if is_enu ~= 0
+            dcm = ned2enu * dcm * ned2enu;
+        end
+
+        if size(src_ahrs_rpy, 1) == 4
+            dcm_y = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) ]);
+            dcm = dcm_y * adcm_y * dcm;
+        end
+
+        src_dcm = dcm * ahrs_dev_dcm';
+
+        tgt(:, i) = flip * ecef_dcm(:, :, i)' * (tgt(:, i) - src_ecef(:, i)); % LF NED
         tgt(:, i) = src_dcm' * tgt(:, i); % LF XYZ
     end
 
-    tgt = usbl_dev_dcm' * (tgt - usbl_dev_xyz); % USBL XYZ
+    tgt = flip * usbl_dev_dcm' * (tgt - usbl_dev_xyz); % USBL XYZ
 end

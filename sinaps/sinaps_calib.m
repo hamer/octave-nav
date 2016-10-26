@@ -24,7 +24,7 @@ function [ ntri, dcm, shift ] = sinaps_calib(name, addr, ishift, talt)
     crp_geod = data(:, 37:39)';     % Lat, Lon and Alt of CRP
 
     %% prepare initial data
-    xyz = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ] * raw_xyz;
+    xyz = raw_xyz;
     sdcm = rpy2dcm(src_rpy);
     src = geod2ecef(crp_geod);
 

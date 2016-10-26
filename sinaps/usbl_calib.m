@@ -12,6 +12,7 @@ function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
     tgt = [];
     tri = [];
 
+    flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
     step = floor(size(src, 2) / 15);
     for i = 1:step
         decim = i:step:size(src, 2);
@@ -35,7 +36,7 @@ function [ dcm, shift, ntri ] = usbl_calib(src, sdcm, xyz, talt)
             etgt = geod2ecef(gtgt);
         end
 
-        meas = xyz;
+        meas = flip * xyz;
         real = ecef_to_local(etgt, src, sdcm);
 
         [ dcm, shift ] = find_transform(real, meas);
@@ -68,7 +69,7 @@ function tgt_xyz = ecef_to_local(tgt_ecef, src_ecef, src_dcm)
 end
 
 function plot_tri(src, tgt, tri)
-    figure(4), hold('off');
+    figure(5), hold('off');
     src_wm = geod2wmerc(ecef2geod(src));
     tgt_wm = geod2wmerc(ecef2geod(tgt));
     o = src_wm(:, 1);
