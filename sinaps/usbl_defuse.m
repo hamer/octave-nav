@@ -22,13 +22,19 @@ function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, src_geod)
     src_ecef = geod2ecef(src_geod);
     ecef_dcm = geod2dcm(src_geod);
 
+    if size(src_ahrs_rpy, 1) > 3
+        arpy = dcm2rpy(ahrs_dev_dcm);
+        adcm_y = rpy2dcm([ 0; 0; arpy(3) ]);
+    end
+
     for i = 1:n
         if size(src_ahrs_rpy, 1) == 3 % [ roll, pitch, heading ]
             src_dcm = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
         else % [ roll, pitch, _, true_heading ]
-            dcm = rpy2dcm(src_ahrs_rpy(:, i)) * ahrs_dev_dcm';
-            rpy = dcm2rpy(dcm);
-            src_dcm = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) - rpy(3) ]) * dcm;
+            dcm_rp = rpy2dcm([ src_ahrs_rpy(1:2, i); 0 ]);
+            dcm_y = rpy2dcm([ 0; 0; src_ahrs_rpy(4, i) ]);
+
+            src_dcm = dcm_y * adcm_y * dcm_rp * ahrs_dev_dcm';
         end
 
         tgt(:, i) = enu2ned * ecef_dcm(:, :, i)' * (tgt(:, i) - src_ecef(:, i)); % LF NED
