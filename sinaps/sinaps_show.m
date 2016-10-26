@@ -13,7 +13,7 @@
 %   sinaps_show('test-data.csv', 2, [ 0, 0, -132 ], [ 0, 0, 2 ], [ 0, 0, -132 ], 1);
 %   sinaps_show('test-data.csv', 2, [ 0, 0, -132 ], [ 0, 0, 2 ], 'fused');
 %
-function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
+function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
     global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
@@ -46,10 +46,8 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
     end
 
-
-
-    tgt_geod = usbl_fuse(raw_xyz, src_rpy, 1, crp_geod);
-    [ tgt_ned, dcms ] = usbl_fuse(raw_xyz, src_rpy, 1);
+    tgt_geod = usbl_fuse(raw_xyz, src_rpy, is_enu, crp_geod);
+    [ tgt_ned, dcms ] = usbl_fuse(raw_xyz, src_rpy, is_enu);
     plot_target(geod2wmerc(tgt_geod), geod2wmerc(crp_geod));
 
     rpys = dcm2rpy(dcms);
