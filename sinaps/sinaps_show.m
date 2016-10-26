@@ -86,6 +86,10 @@ function sinaps_show(name, addr, urot, ushift, arot, ehdt_flag)
     figure(7);
     subplot(2, 1, 1), plot(brng / deg2rad), grid('on'), title('Raw Bearing');
     subplot(2, 1, 2), plot(elev / deg2rad), grid('on'), title('Raw Elevation');
+
+    figure(8);
+    subplot(2, 1, 1), plot(dist), grid('on'), title('Raw Distance');
+    subplot(2, 1, 2), plot(hdist), grid('on'), title('Raw Distance XOY');
 end
 
 function plot_target(tgt, src)
