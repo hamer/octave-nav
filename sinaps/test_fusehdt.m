@@ -1,6 +1,7 @@
 function test_fusehdt()
     d2r = pi / 180;
     flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1];
+    rot90 = rpy2dcm([ 0; 0; 90 ] * d2r);
 
     n = 10;
     i = 1:n;
@@ -38,6 +39,7 @@ function test_fusehdt()
     disp('Euler Z-up -> ENU:'), disp(dcm2rpy(dcm_zu2enu_c)' / d2r);
     disp('Euler Z-down -> NED:'), disp(dcm2rpy(dcm_zd2ned_c)' / d2r);
     disp('Euler Z-down -> NED(fused):'), disp(dcm2rpy(dcm_zd2ned_i)' / d2r);
+    disp('Euler Z-down -> NED(fused,rot90):'), disp(dcm2rpy(dcm_zd2ned_i * rot90)' / d2r);
     disp('');
     disp('Quaternion Z-up -> ENU:'), disp(dcm2quat(dcm_zu2enu_c)');
     disp('Quaternion Z-down -> NED:'), disp(dcm2quat(dcm_zd2ned_c)');
