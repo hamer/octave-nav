@@ -40,7 +40,7 @@ function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
 
     if strcmp(arot, 'fused') == 1
         src_rpy = data(:, 29:31)';  % vessels Roll/Pitch/Yaw
-    elseif nargin < 6|| ehdt_flag ~= 1
+    elseif nargin < 7 || ehdt_flag ~= 1
         src_rpy = data(:, 26:28)';  % raw Roll/Pitch/Yaw
     else
         src_rpy = data(:, [ 26:28, 31 ])';  % raw Roll/Pitch/Yaw + vessel Yaw
