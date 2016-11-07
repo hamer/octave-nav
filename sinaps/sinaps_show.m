@@ -27,6 +27,10 @@ function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
         ahrs_dev_dcm = rpy2dcm(arot' * deg2rad);
     end
 
+    if nargin < 6
+        is_enu = 0;
+    end
+
     usbl_dev_xyz = ushift';
     usbl_dev_dcm = rpy2dcm(urot' * deg2rad);
 
