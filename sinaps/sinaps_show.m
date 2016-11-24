@@ -96,6 +96,9 @@ function plot_target(tgt, src)
     ys = (src(2, :) - src(2, 1)) / k;
     zs = src(3, :);
 
+    disp('STD [x,y]:');
+    disp([ std(xt), std(yt) ]);
+
     figure(1), hold('off');
     plot3(xs, ys, zs, '.k');
     hold('on'), grid('on');
