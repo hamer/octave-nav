@@ -9,26 +9,34 @@ function [ ntri, dcm, shift ] = sinaps_calibd(bname, sname, addr, ishift, talt)
         shift = [ 0; 0; 0 ];
     end
 
-    [ txyz, srpy, sgeod ] = parse(bname, addr);
-    [ tecef, ntri ] = estimate_pos(txyz, shift_src(geod2ecef(sgeod), rpy2dcm(srpy), shift));
+    [ tbxyz, sbrpy, sbgeod ] = parse(bname, addr);
+    [ tsxyz, ssrpy, ssgeod ] = parse(sname, addr);
 
-    if ntri == 0
-        disp('Target position not found');
-    else
+    sbdcm = rpy2dcm(sbrpy);
+    ssdcm = rpy2dcm(ssrpy);
+
+    sbecef = geod2ecef(sbgeod);
+    ssecef = geod2ecef(ssgeod);
+
+    for i = 1:5
+        [ tecef, ntri ] = estimate_pos(tbxyz, shift_src(sbecef, sbdcm, shift));
+
+        if ntri == 0
+            disp('Target position not found');
+            break;
+        end
+
         tgeod = ecef2geod(tecef);
         if nargin > 4
             tgeod(3) = talt;
             tecef = geod2ecef(tgeod);
         end
 
-        [ txyz, srpy, sgeod ] = parse(sname, addr);
-        sdcm = rpy2dcm(srpy);
-        secef = geod2ecef(sgeod);
-
-        [ cdcm, cshift ] = estimate_locrot(shift_src(secef, sdcm, shift), sdcm, txyz, tecef);
-
+        [ cdcm, cshift ] = estimate_locrot(shift_src(ssecef, ssdcm, shift), ssdcm, tsxyz, tecef);
         shift = shift + cshift;
+    end
 
+    if ntri ~= 0
         disp('Triangles:'); disp(ntri);
         disp('Target:'); disp(tgeod');
         disp('Shift:'); disp(shift');
@@ -89,7 +97,7 @@ function [ dcm, shift ] = estimate_locrot(src, sdcm, xyz, etgt)
     real = ecef_to_local(etgt, src, sdcm);
 
     [ dcm, shift ] = find_transform(real, meas);
-    plot_calib(real, meas, dcm * meas + shift);
+    % plot_calib(real, meas, dcm * meas + shift);
 end
 
 %
