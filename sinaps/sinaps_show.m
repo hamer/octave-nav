@@ -52,10 +52,10 @@ function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
 
     tgt_geod = usbl_fuse(raw_xyz, src_rpy, is_enu, crp_geod);
     [ tgt_ned, dcms ] = usbl_fuse(raw_xyz, src_rpy, is_enu);
-    plot_target(geod2wmerc(tgt_geod), geod2wmerc(crp_geod));
+    plot_target(geod2wmerc(tgt_geod), geod2wmerc(crp_geod), tgt_ned);
 
     rpys = dcm2rpy(dcms);
-    figure(2);
+    figure(3);
     subplot(2, 2, 1), plot((src_rpy(1, :)) / deg2rad, '-b'), grid, title('Raw roll');
     subplot(2, 2, 3), plot((src_rpy(2, :)) / deg2rad, '-b'), grid, title('Raw pitch');
     subplot(2, 2, 2), plot((rpys(1, :)) / deg2rad, '-b'), grid, title('Fused roll');
@@ -63,11 +63,11 @@ function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
 
     tgt_enu = zeros(3, size(raw_xyz, 2));
     for i = 1:size(raw_xyz, 2)
-        tgt_enu(:, i) = rpy2dcm(src_rpy(1:3, i)) * raw_xyz(:, i);
+        raw_enu(:, i) = rpy2dcm(src_rpy(1:3, i)) * raw_xyz(:, i);
     end
 
-    figure(3);
-    subplot(3, 1, 1), plot(tgt_enu(3, :)), grid, title('Raw U');
+    figure(4);
+    subplot(3, 1, 1), plot(raw_enu(3, :)), grid, title('Raw U');
     subplot(3, 1, 2), plot(-tgt_ned(3, :)), grid, title('Fused D (negated)');
     subplot(3, 1, 3), plot(tgt_geod(3, :)), grid, title('Fused Alt');
 
@@ -75,17 +75,17 @@ function sinaps_show(name, addr, urot, ushift, arot, is_enu, ehdt_flag)
     brng = atan2(raw_xyz(2, :), raw_xyz(1, :));
     elev = asin(raw_xyz(3, :) ./ dist);
 
-    figure(4);
+    figure(5);
     subplot(2, 2, 1), plot(unwrap(rpys(3, :)) / deg2rad), grid, title('Fused Yaw');
     subplot(2, 2, 2), plot(unwrap(brng) / deg2rad), grid, title('Raw Bearing');
     subplot(2, 2, 3), plot(unwrap(-src_rpy(3, :)) / deg2rad), grid, title('Raw Yaw (negated)');
     subplot(2, 2, 4), plot(unwrap(elev) / deg2rad), grid, title('Raw Elevation');
 
-    figure(5);
-    plot3(tgt_enu(1, :), tgt_enu(2, :), tgt_enu(3, :), '.k'), grid, title('Raw ENU');
+    figure(6);
+    plot3(raw_enu(1, :), raw_enu(2, :), raw_enu(3, :), '.k'), grid, title('Raw ENU');
 end
 
-function plot_target(tgt, src)
+function plot_target(tgt, src, ned)
     k = wmerc2scale(src(:, 1));
 
     xt = (tgt(1, :) - src(1, 1)) / k;
@@ -96,6 +96,12 @@ function plot_target(tgt, src)
     ys = (src(2, :) - src(2, 1)) / k;
     zs = src(3, :);
 
+    xn = -ned(2, :) + (tgt(1, 1) - src(1, 1)) / k;
+    yn = -ned(1, :) + (tgt(2, 1) - src(2, 1)) / k;
+    zn = ned(3, :) + tgt(3, 1);
+
+    t = 1:size(xt, 2);
+
     disp('STD [x,y]:');
     disp([ std(xt), std(yt) ]);
 
@@ -103,5 +109,22 @@ function plot_target(tgt, src)
     plot3(xs, ys, zs, '.k');
     hold('on'), grid('on');
     plot3(xt, yt, zt, '.r');
-    legend('CRP', 'Target'), title('Target');
+    plot3(xn, yn, zn, '.b');
+    legend('CRP', 'Target', 'NED'), title('Target');
+
+    figure(2);
+
+    subplot(2, 1, 1), hold('off');
+    plot(t, xs - xs(1), '.k');
+    hold('on'), grid('on');
+    plot(t, xt - xt(1), '.r');
+    plot(t, xn - xn(1), '.b');
+    legend('CRP', 'Target', 'NED'), title('North');
+
+    subplot(2, 1, 2), hold('off');
+    plot(t, ys - ys(1), '.k');
+    hold('on'), grid('on');
+    plot(t, yt - yt(1), '.r');
+    plot(t, yn - yn(1), '.b');
+    legend('CRP', 'Target', 'NED'), title('East');
 end
