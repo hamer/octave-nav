@@ -18,8 +18,9 @@ function [ ntri, dcm, shift ] = sinaps_calibd(bname, sname, addr, ishift, talt)
     sbecef = geod2ecef(sbgeod);
     ssecef = geod2ecef(ssgeod);
 
-    for i = 1:5
-        [ tecef, ntri ] = estimate_pos(tbxyz, shift_src(sbecef, sbdcm, shift));
+    n_iter = 5;
+    for i = 1:n_iter
+        [ tecef, ntri ] = estimate_pos(tbxyz, shift_src(sbecef, sbdcm, shift), i == n_iter);
 
         if ntri == 0
             disp('Target position not found');
@@ -32,7 +33,7 @@ function [ ntri, dcm, shift ] = sinaps_calibd(bname, sname, addr, ishift, talt)
             tecef = geod2ecef(tgeod);
         end
 
-        [ cdcm, cshift ] = estimate_locrot(shift_src(ssecef, ssdcm, shift), ssdcm, tsxyz, tecef);
+        [ cdcm, cshift ] = estimate_locrot(shift_src(ssecef, ssdcm, shift), ssdcm, tsxyz, tecef, i == n_iter);
         shift = shift + cshift;
     end
 
@@ -66,7 +67,7 @@ function msrc = shift_src(src, dcm, shift)
     end
 end
 
-function [ tecef, ntri ] = estimate_pos(txyz, src)
+function [ tecef, ntri ] = estimate_pos(txyz, src, verbose)
     tgt = [];
     tri = [];
 
@@ -83,21 +84,25 @@ function [ tecef, ntri ] = estimate_pos(txyz, src)
 
     ntri = size(tgt, 2);
     if ntri ~= 0
-        % plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
+        if verbose
+            plot_tri(src, tgt, reshape(tri, 3, 3, size(tri, 2) / 3));
+        end
         tecef = mean(tgt, 2);
     else
         tecef = [];
     end
 end
 
-function [ dcm, shift ] = estimate_locrot(src, sdcm, xyz, etgt)
+function [ dcm, shift ] = estimate_locrot(src, sdcm, xyz, etgt, verbose)
     flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
 
     meas = flip * xyz;
     real = ecef_to_local(etgt, src, sdcm);
 
     [ dcm, shift ] = find_transform(real, meas);
-    % plot_calib(real, meas, dcm * meas + shift);
+    if verbose
+        plot_calib(real, meas, dcm * meas + shift);
+    end
 end
 
 %
@@ -129,19 +134,24 @@ function plot_tri(src, tgt, tri)
     tgt_wm = geod2wmerc(ecef2geod(tgt));
     o = src_wm(:, 1);
     k = wmerc2scale(o);
+    disp('SLBL Cloud STD:'), disp([ std(tgt_wm(1, :)), std(tgt_wm(2, :)) ]);
 
     plot3((src_wm(1, :) - o(1)) / k, (src_wm(2, :) - o(2)) / k, src_wm(3, :), '.k');
     hold('on'), grid('on');
     plot3((tgt_wm(1, :) - o(1)) / k, (tgt_wm(2, :) - o(2)) / k, tgt_wm(3, :), '.r');
 
-    n = size(tri, 3);
-    for i = 1:n
-        t = geod2wmerc(ecef2geod(tri(:, :, i)));
-        t(1:2, :) = (t(1:2, :) - o(1:2)) / k;
-        t = [ t, t(:, 1) ];
+    mid = mean(tgt_wm, 2);
+    plot3((mid(1) - o(1)) / k, (mid(2) - o(2)) / k, mid(3), '.b');
 
-        plot3(t(1, :), t(2, :), t(3, :), '-');
-    end
+    %% plotting all triangle may be expensive operation
+    % n = size(tri, 3);
+    % for i = 1:n
+    %     t = geod2wmerc(ecef2geod(tri(:, :, i)));
+    %     t(1:2, :) = (t(1:2, :) - o(1:2)) / k;
+    %     t = [ t, t(:, 1) ];
+
+    %     plot3(t(1, :), t(2, :), t(3, :), '-');
+    % end
 end
 
 function plot_calib(real, meas, corr)
