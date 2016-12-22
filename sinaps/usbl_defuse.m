@@ -9,18 +9,21 @@
 %       rpy_to_ned = dcm2rpy(flip * rpy2dcm(rpy_to_enu));
 % where flip == enu2ned == ned2enu == rpy2dcm([ pi; 0; pi/2 ])
 %
-function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, is_enu, src_geod)
+function [ tgt ] = usbl_defuse(tgt, src_ahrs_rpy, is_enu, src_geod)
     global usbl_dev_xyz; % shift in local frame of USBL relative to CRP
     global usbl_dev_dcm; % rotation of USBL in local frame
     global ahrs_dev_dcm; % rotation of AHRS in local frame
 
     flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
-
     n = size(src_ahrs_rpy, 2);
-    tgt = geod2ecef(tgt_geod); % ECEF
 
-    src_ecef = geod2ecef(src_geod);
-    ecef_dcm = geod2dcm(src_geod);
+    if nargin > 3
+        tgt = geod2ecef(tgt); % ECEF
+
+        src_ecef = geod2ecef(src_geod);
+        ecef_dcm = geod2dcm(src_geod);
+
+    end
 
     if size(src_ahrs_rpy, 1) > 3
         arpy = dcm2rpy(ahrs_dev_dcm);
@@ -45,7 +48,10 @@ function [ tgt ] = usbl_defuse(tgt_geod, src_ahrs_rpy, is_enu, src_geod)
 
         src_dcm = dcm * ahrs_dev_dcm';
 
-        tgt(:, i) = flip * ecef_dcm(:, :, i)' * (tgt(:, i) - src_ecef(:, i)); % LF NED
+        if nargin > 3
+            tgt(:, i) = flip * ecef_dcm(:, :, i)' * (tgt(:, i) - src_ecef(:, i)); % LF NED
+        end
+
         tgt(:, i) = src_dcm' * tgt(:, i); % LF XYZ
     end
 
