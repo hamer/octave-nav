@@ -89,9 +89,9 @@ k [wm / m] = sec(lat) = cosh(y / a)
 Helmert-7 Parameter Transformation (EPSG:1032)
 
 towgs84=dx,dy,dz,Rx,Ry,Rz,M
-| Xt |   |  1   Rz -Ry |       | Xs |
-| Yt | = | -Rz  1   Rx | * M + | Ys |
-| Zt |   |  Ry -Rx  1  |       | Zs |
+| Xt |   | dx |       |  1   Rz -Ry |   | Xs |
+| Yt | = | dy | + M * | -Rz  1   Rx | * | Ys |
+| Zt |   | dz |       |  Ry -Rx  1  |   | Zs |
 
 ==============================================================================
 
