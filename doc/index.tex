@@ -353,6 +353,53 @@ where:
 Note the $[F]$ application to $\vec{X}_{ut}$. In defference from (\ref{equ:lf2vf}),
 axes difference (Fig.\ref{pic:devcrf}) is taken into account.
 
+
+\section{Acoustic ray bending}
+
+Since acoustic positioning works in anisotropic environment, the waveform path
+between the USBL-transceiver and the Transponder is not a direct line.
+
+Pressure, temperature and salinity may vary with depth. These paremeters affects
+to the sound velocity. Sound velocity relation to the depth is called Sound Velocity
+Profile.
+
+In correspondence to the Snell's law, in that environment rays will bend. It may
+cause incorrect coordinates $\vec{X}_{ut}$ of target measurement: distance to the
+target will be slightly increased and wavefrom will reach USBL-transceiver from
+incorrect direction.
+
+On higher distances second effect makes the major error in measurements.
+
+To compensate this error several techniques can be used. In postprocessing an
+Acoustic Tooklit (BELLHOP) can be used. It is too heavy to run it in real-time.
+
+But some additional information can improve accuracy of measurements.
+If transponder and USBL-transceiver depths below surface are known a vertical
+part of waveform direction can be corrected.
+
+Let $[ N, E, D ]^{T}$ -- motion-compensated coordinates in USBL-frame, $H_{t}$ --
+depth below surface of target and $H_{u}$ -- depth below surface of
+USBL-transceiver. Slant range to the target is $L = \sqrt{N^2 + E^2 + D^2}$,
+horizontal range to target is $R = \sqrt{N^2 + E^2}$. Actual value of vertical
+coordinate is $D^{'} = H_{t} - H_{u}$.
+
+Since distance computation error is relative small, assume that it measured
+correctly and correct horizontal coordinates to conform known depth and slant range.
+Corrected horizontal range is:
+\begin{equation}
+    R^{'} = \sqrt{L^2 - D^{'}} \\
+\end{equation}
+
+Coordinates correction is applied by:
+\begin{equation}
+    \begin{bmatrix}
+        N^{'} \\ E^{'}
+    \end{bmatrix} = \begin{bmatrix}
+        N \\ E
+    \end{bmatrix} \cdot \frac{R^{'}}{R}
+\end{equation}
+
+
 %\lstinputlisting{../lib/get_n.m}
 %\lstinputlisting{../lib/geod2ecef.m}
 %\lstinputlisting{../lib/ecef2geod.m}
