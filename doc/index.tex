@@ -318,6 +318,7 @@ Let convertion (\ref{equ:geod2ecef}) will be $\vec{E} = toECEF(\vec{G})$,  conve
 be $[R_{te}] = [rotECEF(\vec{G})]$. Then:
 \begin{equation}
     \vec{G}_{t} = fromECEF(toECEF(\vec{G}_{v}) + rotECEF(\vec{G}_{v}) \cdot [F] \cdot \vec{N}_{vt})
+    \label{equ:ned2geod}
 \end{equation}
 where $\vec{G}_{t}$ -- geodetic target coordinates, $\vec{G}_{v}$ -- geodetic Vessel-Frame
 origin cordinates, $\vec{N}_{vt}$ -- target $NED$-coordinates in Vessel-Frame and $[F]$ is
@@ -327,6 +328,30 @@ flip-matrix for $NED \rightarrow ENU$ convertion:
         0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & -1
     \end{bmatrix}
 \end{equation}
+
+\subsection{Final algorithm}
+
+The combination of (\ref{equ:lf2vf}), (\ref{equ:vf2ned}) and (\ref{equ:ned2geod}) with assumption,
+that GNSS antenna is located in Vessel-Frame origin is:
+\begin{equation}
+    \begin{split}
+        \vec{X}_{vt} & = \vec{X}_{vu} + [R_{vu}] \cdot [F] \cdot \vec{X}_{ut}, \\
+        \vec{N}_{vt} & = [R_{an}] \cdot [R_{va}]^{T} \cdot \vec{X}_{vt}, \\
+        \vec{G}_{t}  & = fromECEF(toECEF(\vec{G}_{v}) + rotECEF(\vec{G}_{v}) \cdot [F] \cdot \vec{N}_{vt}),
+    \end{split}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\vec{X}_{ut}$ -- coordinates of target extracted from \texttt{USBLLONG};
+    \item $\vec{X}_{vu}$ -- USBL offset in Vessel-Frame;
+    \item $[R_{vu}]$ -- rotation of USBL-Frame in Vessel-Frame;
+    \item $[R_{an}]$ -- rotation of AHRS-frame to NED-frame;
+    \item $[R_{va}]$ -- rotation AHRS in Vessel-Frame;
+    \item $\vec{G}_{v}$ -- geodetic coordinates of Vessel-Frame origin.
+\end{itemize}
+
+Note the $[F]$ application to $\vec{X}_{ut}$. In defference from (\ref{equ:lf2vf}),
+axes difference (Fig.\ref{pic:devcrf}) is taken into account.
 
 %\lstinputlisting{../lib/get_n.m}
 %\lstinputlisting{../lib/geod2ecef.m}
