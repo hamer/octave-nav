@@ -267,12 +267,12 @@ ECEF coordinates convertion to Geodetic is a tricky process, but EPSG:9602 propo
 iteration-less formulas:
 \begin{equation}
     \begin{split}
-        \varphi & = \arctan \frac{Z + \varepsilon^{'} \cdot b \cdot \sin^3 q}{p - e^2 \cdot a \cdot \cos^3 q} \\
+        \varphi & = \arctan \frac{Z + \varepsilon \cdot b \cdot \sin^3 q}{p - e^2 \cdot a \cdot \cos^3 q} \\
         \lambda & = \arctan \frac{Y}{X}
     \end{split}
     \label{equ:ecef2geod}
 \end{equation}
-where $\varepsilon^{'} = e^2 / (1 - e^2)$ -- second excentricity, $p = \sqrt{X^2 + Y^2}$ and
+where $\varepsilon = e^2 / (1 - e^2)$ -- second excentricity, $p = \sqrt{X^2 + Y^2}$ and
 $q = \arctan \frac{Z \cdot a}{p \cdot b}$. Note, that \texttt{atan2(Y, X)} should be used for
 $\lambda$ computation.
 
@@ -387,7 +387,7 @@ Since distance computation error is relative small, assume that it measured
 correctly and correct horizontal coordinates to conform known depth and slant range.
 Corrected horizontal range is:
 \begin{equation}
-    R^{'} = \sqrt{L^2 - D^{'}} \\
+    R^{'} = \sqrt{L^2 - (D^{'})^2} \\
 \end{equation}
 
 Coordinates correction is applied by:
