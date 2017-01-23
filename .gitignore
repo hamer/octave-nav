@@ -1,3 +1,4 @@
 *.csv
 /doc/*
 !/doc/*.tex
+!/doc/*.png
