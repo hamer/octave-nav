@@ -1,5 +1,6 @@
-#include "quaternion.h"
 #include "vector.h"
+
+#include "quaternion.h"
 
 const double *quat_norm(const double *quat, double *result) {
     double norm = vec_norm(4, quat);

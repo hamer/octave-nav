@@ -1,7 +1,7 @@
 #include <math.h>
+#include "matrix.h"
 
 #include "vector.h"
-#include "matrix.h"
 
 double vec_norm(int len, const double *vec) {
     return sqrt(vec_dot(len, vec, vec));

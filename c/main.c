@@ -17,13 +17,15 @@ void check_convertions(void);
 void check_geod(void);
 void check_rot(void);
 void check_slerp(void);
+void check_relative(void);
 
 int main(void) {
-    check_convertions();
-    check_mult();
-    check_geod();
-    check_rot();
-    check_slerp();
+    //check_convertions();
+    //check_mult();
+    //check_geod();
+    //check_rot();
+    //check_slerp();
+    check_relative();
 
     return 0;
 }
@@ -149,4 +151,17 @@ void check_slerp(void) {
         text[4] = '0' + i;
         mat_print(1, 3, rpy_rs, text);
     }
+}
+
+void check_relative(void) {
+    double geod_src[3] = { 50.0, 13.0, 45.0 }, ned_tgt[3] = { 10.0, 20.0, 30.0 };
+    double geod_tgt[3], n_rs[3];
+
+    geod2ned(geod_src, ned2geod(geod_src, ned_tgt, geod_tgt), n_rs);
+
+    printf("===== Checking Geod <-> NED\n");
+    mat_print(1, 3, ned_tgt, "NED(S)");
+    mat_print(1, 3, n_rs, "NED(D)");
+    mat_print(1, 3, geod_src, "GEOD(S)");
+    mat_print(1, 3, geod_tgt, "GEOD(D)");
 }

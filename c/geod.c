@@ -1,4 +1,7 @@
 #include <math.h>
+#include "vector.h"
+#include "matrix.h"
+
 #include "geod.h"
 
 static const double Sa  = 6378137.0;
@@ -75,4 +78,35 @@ double wmerc2scale(const double *wmerc) {
 
 double geod2scale(const double *geod) {
     return 1.0 / cos(geod[0] * deg2rad);
+}
+
+const double *enu2geod(const double *geod_src, const double *enu_tgt, double *result) {
+    double enu_dcm[9], ecef_src[3], ecef_tgt[3];
+
+    mat_mult(3, 3, 1, geod2dcm(geod_src, enu_dcm), enu_tgt, ecef_tgt);
+    vec_add(3, geod2ecef(geod_src, ecef_src), ecef_tgt, ecef_tgt);
+    return ecef2geod(ecef_tgt, result);
+}
+
+const double *ned2geod(const double *geod_src, const double *ned_tgt, double *result) {
+    double enu_tgt[3] = { ned_tgt[1], ned_tgt[0], -ned_tgt[2] };
+    return enu2geod(geod_src, enu_tgt, result);
+}
+
+const double *geod2enu(const double *geod_src, const double *geod_tgt, double *result) {
+    double enu_dcm[9], inv_dcm[9], ecef_src[3], tgt[3];
+
+    vec_sub(3, geod2ecef(geod_tgt, tgt), geod2ecef(geod_src, ecef_src), tgt);
+    geod2dcm(geod_src, enu_dcm);
+    return mat_mult(3, 3, 1, mat_transpose(3, 3, enu_dcm, inv_dcm), tgt, result);
+}
+
+const double *geod2ned(const double *geod_src, const double *geod_tgt, double *result) {
+    double enu_tgt[3];
+    geod2enu(geod_src, geod_tgt, enu_tgt);
+
+    result[0] =  enu_tgt[1];
+    result[1] =  enu_tgt[0];
+    result[2] = -enu_tgt[2];
+    return result;
 }

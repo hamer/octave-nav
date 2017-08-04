@@ -1,7 +1,7 @@
 PROG = fusion
 OBJDIR = .
 
-CFLAGS += -std=gnu99 -W -Wall -pedantic -O0
+CFLAGS += -std=gnu99 -W -Wall -pedantic -O0 -fstack-check
 LDFLAGS += -lm
 SOURCES = main.c vector.c matrix.c quaternion.c rotation.c geod.c
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))

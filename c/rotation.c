@@ -1,8 +1,9 @@
 #include <math.h>
-#include "rotation.h"
 #include "vector.h"
 #include "matrix.h"
 #include "quaternion.h"
+
+#include "rotation.h"
 
 const double *rpy2dcm(const double *rpy, double *dcm) {
     const double cr = cos(rpy[0]), cp = cos(rpy[1]), cy = cos(rpy[2]);
