@@ -157,3 +157,17 @@ const double *quat_slerp(double k, const double *left, const double *right, doub
 
     return result;
 }
+
+const double *dcm_inv(const double *dcm, double *result) {
+    double tmp;
+
+    result[0] = dcm[0];
+    result[4] = dcm[4];
+    result[8] = dcm[8];
+
+    tmp = dcm[1]; result[1] = dcm[3]; result[3] = tmp;
+    tmp = dcm[2]; result[2] = dcm[6]; result[6] = tmp;
+    tmp = dcm[5]; result[5] = dcm[7]; result[7] = tmp;
+
+    return result;
+}

@@ -20,11 +20,11 @@ void check_slerp(void);
 void check_relative(void);
 
 int main(void) {
-    //check_convertions();
-    //check_mult();
-    //check_geod();
-    //check_rot();
-    //check_slerp();
+    check_convertions();
+    check_mult();
+    check_geod();
+    check_rot();
+    check_slerp();
     check_relative();
 
     return 0;

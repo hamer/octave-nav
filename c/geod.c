@@ -1,6 +1,7 @@
 #include <math.h>
 #include "vector.h"
 #include "matrix.h"
+#include "rotation.h"
 
 #include "geod.h"
 
@@ -94,11 +95,11 @@ const double *ned2geod(const double *geod_src, const double *ned_tgt, double *re
 }
 
 const double *geod2enu(const double *geod_src, const double *geod_tgt, double *result) {
-    double enu_dcm[9], inv_dcm[9], ecef_src[3], tgt[3];
+    double enu_dcm[9], ecef_src[3], tgt[3];
 
     vec_sub(3, geod2ecef(geod_tgt, tgt), geod2ecef(geod_src, ecef_src), tgt);
     geod2dcm(geod_src, enu_dcm);
-    return mat_mult(3, 3, 1, mat_transpose(3, 3, enu_dcm, inv_dcm), tgt, result);
+    return mat_mult(3, 3, 1, dcm_inv(enu_dcm, enu_dcm), tgt, result);
 }
 
 const double *geod2ned(const double *geod_src, const double *geod_tgt, double *result) {

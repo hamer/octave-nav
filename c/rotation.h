@@ -13,4 +13,6 @@ const double *quat2dcm(const double *quat, double *dcm);
 const double *quat_rot(const double *xyz, const double *quat, double *rs);
 const double *quat_slerp(double k, const double *left, const double *right, double *result);
 
+const double *dcm_inv(const double *dcm, double *result);
+
 #endif
