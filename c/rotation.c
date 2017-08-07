@@ -80,22 +80,22 @@ const double *dcm2quat(const double *dcm, double *quat) {
         case 1:
             quat[1] = sqrt(0.25 * mv);
             quat[0] = 0.25 * (dcm[7] - dcm[5]) / quat[1];
-            quat[2] = 0.25 * (dcm[3] + dcm[1]) / quat[1];
             quat[3] = 0.25 * (dcm[2] + dcm[6]) / quat[1];
+            quat[2] = 0.25 * (dcm[3] + dcm[1]) / quat[1];
             break;
 
         case 2:
             quat[2] = sqrt(0.25 * mv);
+            quat[3] = 0.25 * (dcm[7] + dcm[5]) / quat[2];
             quat[0] = 0.25 * (dcm[2] - dcm[6]) / quat[2];
             quat[1] = 0.25 * (dcm[3] + dcm[1]) / quat[2];
-            quat[3] = 0.25 * (dcm[7] + dcm[5]) / quat[2];
             break;
 
         case 3:
             quat[3] = sqrt(0.25 * mv);
-            quat[0] = 0.25 * (dcm[3] - dcm[1]) / quat[3];
-            quat[1] = 0.25 * (dcm[2] + dcm[6]) / quat[3];
             quat[2] = 0.25 * (dcm[7] + dcm[5]) / quat[3];
+            quat[1] = 0.25 * (dcm[2] + dcm[6]) / quat[3];
+            quat[0] = 0.25 * (dcm[3] - dcm[1]) / quat[3];
             break;
     }
 
@@ -108,10 +108,10 @@ const double *quat2dcm(const double *quat, double *dcm) {
     dcm[8] = 1.0 - 2.0 * (quat[1] * quat[1] + quat[2] * quat[2]);
 
     dcm[1] = 2.0 * (quat[1] * quat[2] - quat[3] * quat[0]);
-    dcm[2] = 2.0 * (quat[3] * quat[1] + quat[2] * quat[0]);
     dcm[3] = 2.0 * (quat[1] * quat[2] + quat[3] * quat[0]);
-    dcm[5] = 2.0 * (quat[2] * quat[3] - quat[1] * quat[0]);
+    dcm[2] = 2.0 * (quat[3] * quat[1] + quat[2] * quat[0]);
     dcm[6] = 2.0 * (quat[3] * quat[1] - quat[2] * quat[0]);
+    dcm[5] = 2.0 * (quat[2] * quat[3] - quat[1] * quat[0]);
     dcm[7] = 2.0 * (quat[2] * quat[3] + quat[1] * quat[0]);
 
     return dcm;
@@ -161,9 +161,11 @@ const double *quat_slerp(double k, const double *left, const double *right, doub
 const double *dcm_inv(const double *dcm, double *result) {
     double tmp;
 
-    result[0] = dcm[0];
-    result[4] = dcm[4];
-    result[8] = dcm[8];
+    if (result != dcm) {
+        result[0] = dcm[0];
+        result[4] = dcm[4];
+        result[8] = dcm[8];
+    }
 
     tmp = dcm[1]; result[1] = dcm[3]; result[3] = tmp;
     tmp = dcm[2]; result[2] = dcm[6]; result[6] = tmp;
