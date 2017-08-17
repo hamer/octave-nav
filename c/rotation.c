@@ -5,6 +5,18 @@
 
 #include "rotation.h"
 
+double smod(double x, double mod) {
+    return x - (double)floor(x / mod + 0.5) * mod;
+}
+
+double wrap_odd(double x, double range) {
+    return -smod(-x, range);
+}
+
+double wrap_even(double x, double range) {
+    return smod(x - range / 2.0, range) + range / 2.0;
+}
+
 const double *rpy2dcm(const double *rpy, double *dcm) {
     const double cr = cos(rpy[0]), cp = cos(rpy[1]), cy = cos(rpy[2]);
     const double sr = sin(rpy[0]), sp = sin(rpy[1]), sy = sin(rpy[2]);

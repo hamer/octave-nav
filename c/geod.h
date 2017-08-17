@@ -1,6 +1,9 @@
 #ifndef __GEOD_H__
 #define __GEOD_H__
 
+extern const double deg2rad;
+extern const double rad2deg;
+
 const double *geod2ecef(const double *geod, double *ecef);
 const double *ecef2geod(const double *ecef, double *geod);
 

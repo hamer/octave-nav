@@ -1,6 +1,13 @@
 #ifndef __ROTATION_H__
 #define __ROTATION_H__
 
+#define wrap_180(x) wrap_odd(x,  360.0) // wrap to (-180.0, 180.0]
+#define wrap_360(x) wrap_even(x, 360.0) // wrap to [0.0, 360.0)
+
+double smod(double x, double mod);
+double wrap_odd(double x, double range);
+double wrap_even(double x, double range);
+
 const double *rpy2dcm(const double *rpy, double *dcm);
 const double *dcm2rpy(const double *dcm, double *rpy);
 

@@ -11,8 +11,8 @@ static const double Se  = 0.0818191909289069;     // e = sqrt(1 - (b/a)^2)
 static const double Se2 = 0.00673949675658700;    // e^2 / (1 - e^2)
 //static const double Sf  = 1.0 / 298.257223563;    // f = 1 - b/a
 
-static const double deg2rad = M_PI / 180.0;
-static const double rad2deg = 180.0 / M_PI;
+const double deg2rad = M_PI / 180.0;
+const double rad2deg = 180.0 / M_PI;
 
 static double get_n(double phi);
 
