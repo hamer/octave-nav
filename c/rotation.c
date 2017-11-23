@@ -144,28 +144,20 @@ const double *quat_rot(const double *xyz, const double *quat, double *result) {
 }
 
 const double *quat_slerp(double k, const double *left, const double *right, double *result) {
-    double dot = vec_dot(4, left, right);
+    double dot = vec_dot(4, left, right), cleft[4];
 
-    if (fabs(dot) > 0.9995) {
-        // result = norm(left + t * (right - left))
-        vec_scale(4, k, vec_sub(4, right, left, result), result);
-        quat_norm(vec_add(4, left, result, result), result);
-    } else {
-        double cleft[4];
+    vec_scale(4, dot >= 0.0 ? 1.0 : -1.0, left, cleft);
+    dot = fabs(dot);
 
-        vec_scale(4, dot >= 0.0 ? 1.0 : -1.0, left, cleft);
-        dot = fabs(dot);
+    double theta = k * acos(fmin(1.0, dot));
 
-        double theta = k * acos(fmin(1.0, fmax(-1.0, dot)));
+    // mbase = norm(right - dot * left)
+    quat_norm(vec_sub(4, right, vec_scale(4, dot, cleft, result), result), result);
 
-        // mbase = norm(right - dot * left)
-        quat_norm(vec_sub(4, right, vec_scale(4, dot, cleft, result), result), result);
-
-        // result = left * cos(theta) + mbase * sin(theta)
-        vec_scale(4, cos(theta), cleft, cleft);
-        vec_scale(4, sin(theta), result, result);
-        vec_add(4, cleft, result, result);
-    }
+    // result = left * cos(theta) + mbase * sin(theta)
+    vec_scale(4, cos(theta), cleft, cleft);
+    vec_scale(4, sin(theta), result, result);
+    vec_add(4, cleft, result, result);
 
     return result;
 }

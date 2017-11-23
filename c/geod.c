@@ -5,19 +5,21 @@
 
 #include "geod.h"
 
-static const double Sa  = 6378137.0;
-static const double Sb  = 6356752.3142;
-static const double Se  = 0.0818191909289069;     // e = sqrt(1 - (b/a)^2)
-static const double Se2 = 0.00673949675658700;    // e^2 / (1 - e^2)
-//static const double Sf  = 1.0 / 298.257223563;    // f = 1 - b/a
+// WGS84
+const double Sa  = 6378137.0;
+const double Sif = 298.257223563;
+const double SGM = 0.3986004418e15;
+
+const double Sb  = 6356752.3142451792955; // = Sa * (1.0 - 1.0 / Sif);
+const double See = 0.0066943799901412193; // = 1.0 - Sb * Sb / Sa / Sa;
+const double Se2 = 0.0067394967422763361; // = See / (1.0 - See);
 
 const double deg2rad = M_PI / 180.0;
 const double rad2deg = 180.0 / M_PI;
 
-static double get_n(double phi);
-
 static double get_n(double phi) {
-    return Sa / sqrt(1.0 - pow((Se * sin(phi)), 2.0));
+    double sp = sin(phi);
+    return Sa / sqrt(1.0 - See * sp * sp);
 }
 
 const double *geod2ecef(const double *geod, double *ecef) {
@@ -28,7 +30,7 @@ const double *geod2ecef(const double *geod, double *ecef) {
 
     ecef[0] = r * cl;
     ecef[1] = r * sl;
-    ecef[2] = (Sb / Sa * Sb / Sa * n + geod[2]) * sp;
+    ecef[2] = ((1.0 - See) * n + geod[2]) * sp;
 
     return ecef;
 }
@@ -36,7 +38,7 @@ const double *geod2ecef(const double *geod, double *ecef) {
 const double *ecef2geod(const double *ecef, double *geod) {
     const double p = hypot(ecef[0], ecef[1]);
     const double q = atan2(ecef[2] * Sa, p * Sb);
-    const double phi = atan2(ecef[2] + Se2 * Sb * pow(sin(q), 3.0), p - Sa * Se * Se * pow(cos(q), 3.0));
+    const double phi = atan2(ecef[2] + Se2 * Sb * pow(sin(q), 3.0), p - Sa * See * pow(cos(q), 3.0));
     const double h = p / cos(phi) - get_n(phi);
 
     geod[0] = phi * rad2deg;
@@ -110,4 +112,22 @@ const double *geod2ned(const double *geod_src, const double *geod_tgt, double *r
     result[1] =  enu_tgt[0];
     result[2] = -enu_tgt[2];
     return result;
+}
+
+double lat2grav(double phi, double *grav) {
+    static const double geqt = 9.7803253359, k = 0.00193185265246; // WGS84(G873)
+
+    double sp = sin(phi), n = get_n(phi);
+    double gr = geqt * (1.0 + k * sp * sp) * n / Sa;
+
+    if (grav) {
+        double cp = cos(phi), x = cp, z = (1.0 - See) * sp;
+        double re = n * hypot(z, x), psi = atan2(z, x);
+
+        grav[0] = re;  // geocentric radius [m]
+        grav[1] = psi; // geocentric latitude [rad]
+        grav[2] = gr;  // normal gravity [m/sec^2]
+    }
+
+    return gr;
 }

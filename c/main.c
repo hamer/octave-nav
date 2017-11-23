@@ -7,9 +7,6 @@
 #include "rotation.h"
 #include "geod.h"
 
-static const double deg2rad = M_PI / 180.0;
-static const double rad2deg = 180.0 / M_PI;
-
 static const double *mat_print(int rows, int cols, const double *data, const char *desc);
 
 void check_mult(void);
