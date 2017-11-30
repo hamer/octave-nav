@@ -22,7 +22,6 @@ function [ tgt ] = usbl_defuse(tgt, src_ahrs_rpy, is_enu, src_geod)
 
         src_ecef = geod2ecef(src_geod);
         ecef_dcm = geod2dcm(src_geod);
-
     end
 
     if size(src_ahrs_rpy, 1) > 3
