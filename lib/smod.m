@@ -1,3 +1,3 @@
 function s = smod(x, m)
-    s = x - round(x ./ m) .* m;
+    s = x - floor(x ./ m + 0.5) .* m;
 end
