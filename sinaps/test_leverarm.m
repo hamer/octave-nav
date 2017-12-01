@@ -12,19 +12,24 @@ function test_leverarm()
 
     poly = gen_poly(4, 30, 8);
     sz = size(poly, 2);
+
+    %sz = floor(sz / 2);
+    %poly = poly(:, 1:sz);
+
     zp = zeros(1, sz);
     op = ones(1, sz);
     wp = sin(10 * 2 * pi * (0:sz-1) / sz);
 
     scenter_geod = [ 50.0; 13.0; 45 ];
-    tcenter_geod = [ 50.001; 13.001; 45 ];
+    tcenter_geod = [ 50.0; 13.0; 45 ];
+    %tcenter_geod = [ 50.001; 13.001; 45 ];
 
     src_geod = poly2geod(scenter_geod, [ 150 * poly(2:-1:1, :); 5 * wp ]);
     src_rpy = [ zp; zp; wrap_2pi(poly(3, :)) ];
     tgto_geod = tcenter_geod .* op;
 
     %% step 1: defusion (find usbl-frame coordinates for specific loc/rot)
-    usbl_dev_xyz = [ 0; 30; 0 ];
+    usbl_dev_xyz = [ 0; 0; 0 ];
     usbl_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
     rawm_xyz = defuse(tgto_geod, src_rpy, src_geod); % measured XYZ (got)
 
@@ -57,6 +62,12 @@ function test_leverarm()
 
     err = flip * (flip * rawc_xyz - shift - cdcm * flip * rawm_xyz);
     figure(4), plot(err(1, :), err(2, :), '.'), grid('on'), title('Calibration error');
+
+    %% step 4: try to find target location via SLBL
+    tgts_geod = ecef2geod(slbl(geod2ecef(src_geod), sqrt(sum(rawm_xyz.^2, 1))));
+    figure(5), hold('off');
+    plot_wmerc(tgts_geod, tcenter_geod), hold('on');
+    plot_wmerc(tcenter_geod, tcenter_geod), grid('on');
 end
 
 function [ geod ] = poly2geod(cgeod, poly)
@@ -65,6 +76,15 @@ end
 
 function [ tgt_xyz ] = defuse(tgt_geod, src_rpy, src_geod)
     tgt_xyz = usbl_defuse(tgt_geod, src_rpy, 0, src_geod);
+end
+
+function plot_wmerc(tgeod, orig)
+    owmerc = geod2wmerc(orig);
+    k = wmerc2scale(owmerc);
+
+    twmerc = geod2wmerc(tgeod) - owmerc;
+    twmerc(1:2) = twmerc(1:2) / k;
+    plot3(twmerc(1, :), twmerc(2, :), twmerc(3, :), '.');
 end
 
 function plot_target(tgt, src, ned)
