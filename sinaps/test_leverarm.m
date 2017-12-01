@@ -16,11 +16,12 @@ function test_leverarm()
     op = ones(1, sz);
     wp = sin(10 * 2 * pi * (0:sz-1) / sz);
 
-    center_geod = [ 50.0; 13.0; 45 ];
+    scenter_geod = [ 50.0; 13.0; 45 ];
+    tcenter_geod = [ 50.001; 13.001; 45 ];
 
-    src_geod = poly2geod(center_geod, [ 150 * poly(2:-1:1, :); 5 * wp ]);
+    src_geod = poly2geod(scenter_geod, [ 150 * poly(2:-1:1, :); 5 * wp ]);
     src_rpy = [ zp; zp; wrap_2pi(poly(3, :)) ];
-    tgt_geod = center_geod .* op;
+    tgt_geod = tcenter_geod .* op;
 
     %% step 1: defusion (find usbl-frame coordinates for specific loc/rot)
     usbl_dev_xyz = [ 0; 30; 0 ];
@@ -30,7 +31,7 @@ function test_leverarm()
     % optional add noise
     %raw_xyz = raw_xyz + 10 * (rand(size(raw_xyz)) - 0.5);
 
-    %% step 2: fusion sith another loc/rot
+    %% step 2: fusion with another loc/rot
     usbl_dev_xyz = [ 0; 0; 0 ];
     usbl_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
     tgt_geod = usbl_fuse(raw_xyz, src_rpy, 0, src_geod);
