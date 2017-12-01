@@ -28,8 +28,11 @@ function test_leverarm()
     usbl_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
     rawm_xyz = defuse(tgto_geod, src_rpy, src_geod); % measured XYZ (got)
 
+    % optional scale measurements
+    %rawm_xyz = rawm_xyz * (1500/1465);
+
     % optional add noise
-    rawm_xyz = rawm_xyz + 10 * (rand(size(rawm_xyz)) - 0.5);
+    %rawm_xyz = rawm_xyz + 0.5 * randn(size(rawm_xyz));
 
     %% step 2: fusion with another loc/rot
     usbl_dev_xyz = [ 0; 0; 0 ];
@@ -40,16 +43,20 @@ function test_leverarm()
 
     figure(3), hold('off');
     rawc_xyz = defuse(tgto_geod, src_rpy, src_geod); % computed XYZ (should be)
-    plot(rawm_xyz(1, :), rawm_xyz(2, :), '.r'), hold('on');
-    plot(rawc_xyz(1, :), rawc_xyz(2, :), '.k'), grid('on');
+    rawv_xyz = defuse(src_geod(:, 1) .* op, src_rpy, src_geod); % vessel relative coords
+    plot(rawm_xyz(1, :), rawm_xyz(2, :), '.'), hold('on');
+    plot(rawc_xyz(1, :), rawc_xyz(2, :), '.'), grid('on');
     title('Measurements in Device-frame');
-    legend([ 'Measured'; 'Computed' ]);
+    legend('Measured', 'Computed');
 
     %% step 3: try to find loc/rot based on true raw_xyz
     flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
     [ cdcm, shift ] = find_transform(flip * rawc_xyz, flip * rawm_xyz);
     disp('Shift:'); disp(shift');
     disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
+
+    err = flip * (flip * rawc_xyz - shift - cdcm * flip * rawm_xyz);
+    figure(4), plot(err(1, :), err(2, :), '.'), grid('on'), title('Calibration error');
 end
 
 function [ geod ] = poly2geod(cgeod, poly)
