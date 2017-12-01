@@ -21,22 +21,35 @@ function test_leverarm()
 
     src_geod = poly2geod(scenter_geod, [ 150 * poly(2:-1:1, :); 5 * wp ]);
     src_rpy = [ zp; zp; wrap_2pi(poly(3, :)) ];
-    tgt_geod = tcenter_geod .* op;
+    tgto_geod = tcenter_geod .* op;
 
     %% step 1: defusion (find usbl-frame coordinates for specific loc/rot)
     usbl_dev_xyz = [ 0; 30; 0 ];
     usbl_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
-    raw_xyz = defuse(tgt_geod, src_rpy, src_geod);
+    rawm_xyz = defuse(tgto_geod, src_rpy, src_geod); % measured XYZ (got)
 
     % optional add noise
-    %raw_xyz = raw_xyz + 10 * (rand(size(raw_xyz)) - 0.5);
+    rawm_xyz = rawm_xyz + 10 * (rand(size(rawm_xyz)) - 0.5);
 
     %% step 2: fusion with another loc/rot
     usbl_dev_xyz = [ 0; 0; 0 ];
     usbl_dev_dcm = rpy2dcm([ 0; 0; 0 ] * deg2rad);
-    tgt_geod = usbl_fuse(raw_xyz, src_rpy, 0, src_geod);
-    tgt_ned  = usbl_fuse(raw_xyz, src_rpy, 0);
+    tgt_geod = usbl_fuse(rawm_xyz, src_rpy, 0, src_geod);
+    tgt_ned  = usbl_fuse(rawm_xyz, src_rpy, 0);
     plot_target(geod2wmerc(tgt_geod), geod2wmerc(src_geod), tgt_ned);
+
+    figure(3), hold('off');
+    rawc_xyz = defuse(tgto_geod, src_rpy, src_geod); % computed XYZ (should be)
+    plot(rawm_xyz(1, :), rawm_xyz(2, :), '.r'), hold('on');
+    plot(rawc_xyz(1, :), rawc_xyz(2, :), '.k'), grid('on');
+    title('Measurements in Device-frame');
+    legend([ 'Measured'; 'Computed' ]);
+
+    %% step 3: try to find loc/rot based on true raw_xyz
+    flip = [ 0, 1, 0; 1, 0, 0; 0, 0, -1 ];
+    [ cdcm, shift ] = find_transform(flip * rawc_xyz, flip * rawm_xyz);
+    disp('Shift:'); disp(shift');
+    disp('Rotation:'); disp(dcm2rpy(cdcm)' / deg2rad);
 end
 
 function [ geod ] = poly2geod(cgeod, poly)
